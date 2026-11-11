@@ -1,0 +1,8 @@
+# Nunca enviar à Vercel: credenciais, banco local e artefatos de build.
+.env*
+!.env.example
+local.db*
+.next
+node_modules
+coverage
+.claude
