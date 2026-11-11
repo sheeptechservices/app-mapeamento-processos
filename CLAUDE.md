@@ -63,6 +63,16 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
 - Login: Google Identity Services + ID token verificado com `node:crypto`; sem Client ID, "Entrar em modo local"
   (só em dev, ou build local com `PERMITIR_MODO_LOCAL=1`; nunca na Vercel).
 
+## Publicação
+
+- GitHub: `sheeptechservices/app-mapeamento-processos` (público), sempre pela conta **guifzaidan** (`gh auth switch -u guifzaidan`).
+- Vercel: projeto `app-mapeamento-processos` no escopo pessoal (não no time Dux), produção em
+  https://app-mapeamento-processos.vercel.app. Variáveis de produção: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`,
+  `SESSION_SECRET`, `GOOGLE_ALLOWED_DOMAIN`. Falta `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (sem ele ninguém entra em produção).
+  A ligação Git da Vercel ainda não está feita (a Vercel não tem acesso ao repositório da organização); até lá,
+  publicar com `npx vercel deploy --prod`. `.vercelignore` impede enviar `.env*` e `local.db`.
+- `npm run db:exemplo` cria o cliente fictício "Exemplo - Atacadista Vale do Ivaí" (3 sessões, 100 processos).
+
 ## Comandos
 
 - `npm run dev` (preview na porta 3010; o service worker não registra em dev)
