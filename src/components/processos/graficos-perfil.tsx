@@ -158,7 +158,7 @@ function Coluna({ f, total, maior, cor }: { f: Fatia; total: number; maior: numb
   );
 }
 
-/** Colunas verticais (ordem natural da categoria, ex.: Diário -> Sob demanda), valor em cima. */
+/** Colunas verticais (ordem natural da categoria, ex.: Diário -> Sob demanda), no verde Sheep; o valor vai escrito em cima (o lima sozinho tem pouco contraste). */
 export function Colunas({ fatias, total, vazio }: { fatias: Fatia[]; total: number; vazio: string }) {
   if (!fatias.length) return <p className="text-[13px] leading-relaxed text-tinta-2">{vazio}</p>;
   const maior = Math.max(...fatias.map(f => f.n));
@@ -166,7 +166,7 @@ export function Colunas({ fatias, total, vazio }: { fatias: Fatia[]; total: numb
     <AreaDica>
       <ul className="marcas flex items-stretch gap-2 border-b border-borda pb-0">
         {fatias.map(f => (
-          <Coluna key={f.chave || 'sem'} f={f} total={total} maior={maior} cor={f.chave ? 'var(--verde-tinta)' : 'var(--borda-forte)'} />
+          <Coluna key={f.chave || 'sem'} f={f} total={total} maior={maior} cor={f.chave ? 'var(--verde)' : 'var(--borda-forte)'} />
         ))}
       </ul>
     </AreaDica>
