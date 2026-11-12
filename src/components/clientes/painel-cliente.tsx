@@ -208,7 +208,7 @@ export function PainelCliente({
                 aoMudar={v => mudar('faturamento_mensal', v)}
               />
             </Grupo>
-            <Grupo titulo="Ficha" rodape="História, produtos, números e o que vale levar para a visita. Toque no texto para editar.">
+            <Grupo titulo="Ficha">
               <LinhaTextoRico rotulo="Contexto específico" valor={dados.observacoes} aoMudar={v => mudar('observacoes', v || null)} />
             </Grupo>
           </fieldset>
