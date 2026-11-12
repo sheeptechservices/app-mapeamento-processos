@@ -16,7 +16,7 @@ declare global {
 
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
 
-export function Entrar({ clientId, modoLocal }: { clientId: string; modoLocal: boolean }) {
+export function Entrar({ clientId, modoLocal, aberto }: { clientId: string; modoLocal: boolean; aberto?: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const alvo = useRef<HTMLDivElement>(null);
@@ -55,6 +55,22 @@ export function Entrar({ clientId, modoLocal }: { clientId: string; modoLocal: b
     document.head.appendChild(s);
   }, [clientId, destino, router]);
 
+  // Acesso aberto: entra sozinho, sem tela de login.
+  useEffect(() => {
+    if (!aberto) return;
+    let vivo = true;
+    fetch('/api/auth/local', { method: 'POST' })
+      .then(r => {
+        if (!vivo) return;
+        if (r.ok) router.replace(destino);
+        else setErro('Não foi possível abrir o app. Recarregue a página.');
+      })
+      .catch(() => vivo && setErro('Sem conexão. Tente de novo quando a rede voltar.'));
+    return () => {
+      vivo = false;
+    };
+  }, [aberto, destino, router]);
+
   const entrarLocal = async () => {
     setEntrando(true);
     const r = await fetch('/api/auth/local', { method: 'POST' }).catch(() => null);
@@ -65,7 +81,11 @@ export function Entrar({ clientId, modoLocal }: { clientId: string; modoLocal: b
 
   return (
     <div className="space-y-4">
-      {clientId ? (
+      {aberto && !erro ? (
+        <div className="flex min-h-[52px] justify-center">
+          <span className="spinner" />
+        </div>
+      ) : aberto ? null : clientId ? (
         <div className="flex min-h-[44px] justify-center">
           {entrando ? <span className="spinner" /> : <div ref={alvo} />}
         </div>

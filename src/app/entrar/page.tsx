@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { modoLocalPermitido } from '@/lib/servidor/sessao';
+import { acessoAberto, modoLocalPermitido } from '@/lib/servidor/sessao';
 import { Entrar } from './entrar';
 
 export const metadata: Metadata = { title: 'Entrar' };
@@ -25,7 +25,7 @@ export default function PaginaEntrar() {
 
       <div className="w-full max-w-sm">
         <Suspense fallback={<div className="spinner-linha"><span className="spinner" /></div>}>
-          <Entrar clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ''} modoLocal={modoLocalPermitido()} />
+          <Entrar clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ''} modoLocal={modoLocalPermitido()} aberto={acessoAberto()} />
         </Suspense>
       </div>
     </main>

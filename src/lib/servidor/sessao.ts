@@ -75,11 +75,21 @@ export async function apagarCookieSessao() {
 }
 
 /**
- * Modo local: sem Client ID do Google, e só em desenvolvimento ou num build de
- * produção rodando na máquina com PERMITIR_MODO_LOCAL=1 (teste do PWA offline).
- * Nunca configure essa variável na Vercel.
+ * Acesso aberto (decisão do usuário em 11/11/2026): sem login, quem abre o link
+ * entra direto como a equipe. Liga com ACESSO_ABERTO=1 (configurado na Vercel) e
+ * só vale enquanto não houver Client ID do Google; com o Google configurado,
+ * volta a exigir login.
+ */
+export function acessoAberto() {
+  return process.env.ACESSO_ABERTO === '1' && !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+}
+
+/**
+ * Modo local: sem Client ID do Google, em desenvolvimento, num build de produção
+ * rodando na máquina com PERMITIR_MODO_LOCAL=1 (teste do PWA offline) ou com o
+ * acesso aberto ligado.
  */
 export function modoLocalPermitido() {
   if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) return false;
-  return process.env.NODE_ENV !== 'production' || process.env.PERMITIR_MODO_LOCAL === '1';
+  return process.env.NODE_ENV !== 'production' || process.env.PERMITIR_MODO_LOCAL === '1' || acessoAberto();
 }

@@ -6,6 +6,8 @@ import './globals.css';
 const manrope = Manrope({ variable: '--font-manrope', subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 
 export const metadata: Metadata = {
+  // Ferramenta interna: fora dos buscadores (o link fica aberto, mas não é divulgado).
+  robots: { index: false, follow: false },
   title: { default: 'Sheep Levantamento', template: '%s | Sheep Levantamento' },
   description: 'Mapa de processos e ROI da carteira de clientes da Sheep Technology.',
   applicationName: 'Sheep Levantamento',
