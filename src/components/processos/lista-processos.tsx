@@ -132,12 +132,12 @@ export function LinhaProcesso({
           >
             {p.titulo || 'Sem título'}
           </button>
-          <p className={cn('mt-0.5 truncate text-[12px] text-tinta-2', descricao && '@max-xl:hidden')}>
+          <p className="mt-0.5 truncate text-[12px] text-tinta-2 @max-xl:hidden">
             {setor ? `# ${setor}` : 'Sem setor'}
             {r.horas_mes != null ? ` - ${horas(r.horas_mes)}/mês` : ''}
             {!r.completo ? ` - falta ${r.faltando.length === 1 ? '1 número' : `${r.faltando.length} números`}` : ''}
           </p>
-          {descricao && <p className="mt-0.5 truncate text-[12px] text-tinta-2 @xl:hidden">{descricao}</p>}
+          <p className={cn('mt-0.5 truncate text-[12px] @xl:hidden', descricao ? 'text-tinta-2' : 'text-tinta-3')}>{descricao || 'Sem descrição'}</p>
         </div>
         <span className="hidden w-[112px] shrink-0 tablet:block @max-xl:!hidden">
           {p.em_risco ? <SeloRisco /> : <SeloStatus status={p.status} cfg={carteira.config} />}

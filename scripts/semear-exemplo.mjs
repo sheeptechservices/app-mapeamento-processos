@@ -2,6 +2,7 @@
 // processos, no formato da sincronização, para ver o app com volume.
 //   node --env-file=.env.local scripts/semear-exemplo.mjs
 // O nome começa com "Exemplo -" para ser fácil achar e excluir depois.
+import { descricaoDe } from './exemplo-descricoes.mjs';
 import { createClient } from '@libsql/client';
 import { randomUUID } from 'node:crypto';
 import { COLUNAS } from '../src/lib/sync-protocolo.ts';
@@ -165,12 +166,14 @@ for (const s of sessoes) {
     const noPeriodo = frequencia === 'diario' ? entre(1, 6) : frequencia === 'semanal' ? entre(1, 5) : entre(1, 3);
     const incompleto = sorte() < 0.12;
     const trabalho = status === 'em_execucao' || status === 'automatizado';
+    const titulo = i < MODELOS[setor].length ? base : `${base} - ${um(['CD Ivaiporã', 'CD Apucarana', 'CD Londrina', 'matriz'])}`;
     registro('processos', {
       sessao_id: sessaoId,
       cliente_id: cliente,
       area_id: areas[setor],
       codigo: `PRC-${String(codigo++).padStart(3, '0')}`,
-      titulo: i < MODELOS[setor].length ? base : `${base} - ${um(['CD Ivaiporã', 'CD Apucarana', 'CD Londrina', 'matriz'])}`,
+      titulo,
+      descricao: descricaoDe(titulo),
       ponto_focal: um(['Paula Reis', 'Júlio Teixeira', 'Carla Nunes', 'Marcos Andrade', 'Rafael Lima']),
       status,
       frequencia,
