@@ -140,6 +140,7 @@ export function AvisoVersao() {
         titulo="Atualizar agora?"
         texto="O app vai recarregar e fechar o que estiver aberto. O que você estiver preenchendo e ainda não salvou pode se perder. Se estiver no meio de um cadastro, salve antes."
         rotuloConfirmar="Atualizar agora"
+        neutro
         aoConfirmar={atualizarAgora}
       />
     </>

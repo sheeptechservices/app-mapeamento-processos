@@ -10,6 +10,7 @@ import { conferirSenha } from '@/lib/senha-exclusao';
  * Confirmação de exclusão: diálogo centralizado, botão de excluir em vermelho.
  * Nunca window.confirm. Com `pedirSenha` (cliente e sessão, que apagam em
  * cascata), só exclui com a senha de exclusão (`lib/senha-exclusao.ts`).
+ * Com `neutro`, o botão de confirmar é preto (ação que não apaga nada, como atualizar o app).
  */
 export function Confirmar({
   aberto,
@@ -19,6 +20,7 @@ export function Confirmar({
   rotuloConfirmar = 'Excluir',
   aoConfirmar,
   pedirSenha,
+  neutro,
 }: {
   aberto: boolean;
   aoFechar: () => void;
@@ -27,6 +29,7 @@ export function Confirmar({
   rotuloConfirmar?: string;
   aoConfirmar: () => void;
   pedirSenha?: boolean;
+  neutro?: boolean;
 }) {
   const reduzido = useReducedMotion();
   const [senha, setSenha] = useState('');
@@ -133,7 +136,10 @@ export function Confirmar({
                     </AlertDialog.Cancel>
                     <AlertDialog.Action
                       onClick={aoConfirmar}
-                      className="foco min-h-11 flex-1 rounded-pilula bg-risco text-[14px] font-semibold text-white transition-[filter,transform] hover:-translate-y-px hover:brightness-110"
+                      className={cn(
+                        'foco min-h-11 flex-1 rounded-pilula text-[14px] font-semibold transition-[filter,transform] hover:-translate-y-px active:scale-[0.97]',
+                        neutro ? 'bg-tinta text-sobre-tinta hover:brightness-125' : 'bg-risco text-white hover:brightness-110',
+                      )}
                     >
                       {rotuloConfirmar}
                     </AlertDialog.Action>
