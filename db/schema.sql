@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS processos (
   gargalos            TEXT,
   pontos_atencao      TEXT,
   ganho_esperado      TEXT,
+  observacoes         TEXT,
   eisenhower          INTEGER,
   em_risco            INTEGER NOT NULL DEFAULT 0,
   ganho_validado_pct  REAL,

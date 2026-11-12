@@ -301,6 +301,7 @@ export function dadosProcessoVazio(sessao_id: string, cliente_id: string, area_i
     gargalos: null,
     pontos_atencao: null,
     ganho_esperado: null,
+    observacoes: null,
     eisenhower: null,
     em_risco: false,
     ganho_validado_pct: null,

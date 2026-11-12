@@ -126,6 +126,8 @@ export interface Processo extends Registro {
   gargalos: string | null;
   pontos_atencao: string | null;
   ganho_esperado: string | null;
+  /** Anotações livres sobre o processo (texto rico: listas, negrito, itálico). */
+  observacoes: string | null;
   eisenhower: Eisenhower | null;
   em_risco: boolean;
   /** Parte do ganho confirmada pelo cliente, de 0 a 100. */
@@ -355,6 +357,7 @@ export const ROTULO_CAMPO_PROCESSO: Record<string, string> = {
   gargalos: 'gargalos',
   pontos_atencao: 'pontos de atenção',
   ganho_esperado: 'ganho esperado',
+  observacoes: 'observações',
   eisenhower: 'prioridade',
   em_risco: 'em risco',
   ganho_validado_pct: 'ganho validado',

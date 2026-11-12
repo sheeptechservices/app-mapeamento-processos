@@ -45,11 +45,11 @@ export function daAba(p: Processo, aba: AbaFiltro) {
   return true;
 }
 
-/** Busca por nome, ID (PRC-001) ou gargalo, sem diferença de acento ou maiúscula. */
+/** Busca por nome, ID (PRC-001), gargalo ou observações, sem diferença de acento ou maiúscula. */
 export function casaBusca(p: Processo, busca: string) {
   const t = semAcento(busca.trim());
   if (!t) return true;
-  return semAcento(`${p.titulo} ${p.codigo} ${p.gargalos ?? ''}`).includes(t);
+  return semAcento(`${p.titulo} ${p.codigo} ${p.gargalos ?? ''} ${p.observacoes ?? ''}`).includes(t);
 }
 
 export function filtrarProcessos(processos: Processo[], f: FiltrosProcesso, aba: AbaFiltro, info: InfoProcesso): Processo[] {
@@ -107,7 +107,11 @@ export function etiquetasAtivas(
 ): EtiquetaFiltro[] {
   return [
     ...(f.soRisco ? [{ chave: 'risco', rotulo: 'Em risco', remover: (x: FiltrosProcesso) => ({ ...x, soRisco: false }) }] : []),
-    ...f.setores.map(s => ({ chave: `setor:${s}`, rotulo: s, remover: (x: FiltrosProcesso) => ({ ...x, setores: x.setores.filter(v => v !== s) }) })),
+    ...f.setores.map(s => ({
+      chave: `setor:${s}`,
+      rotulo: s,
+      remover: (x: FiltrosProcesso) => ({ ...x, setores: x.setores.filter(v => v !== s) }),
+    })),
     ...f.status.map(s => ({
       chave: `status:${s}`,
       rotulo: rotulos.status(s),

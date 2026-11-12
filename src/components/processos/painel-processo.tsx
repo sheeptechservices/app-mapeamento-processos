@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { IconAlerta, IconCheck, IconExcluir } from '@/components/icons';
 import { Avatar } from '@/components/ui/avatar';
 import { Confirmar } from '@/components/ui/confirmar';
+import { LinhaTextoRico } from '@/components/ui/texto-rico';
 import { Grupo, Linha, LinhaInterruptor, LinhaNumero, LinhaTexto, LinhaTextoLongo, ListaEscolha, Segmentado } from '@/components/ui/linhas';
 import { Painel, RodapePainel } from '@/components/ui/painel';
 import {
@@ -446,6 +447,13 @@ export function PainelProcesso({
               placeholder="O que muda para o cliente com a automação"
             />
             <Linha rotulo="Prioridade" valor={dados.eisenhower ? rotuloDe(PRIORIDADES, dados.eisenhower) : null} subtela="prioridade" />
+          </Grupo>
+
+          <Grupo
+            titulo="Anotações"
+            rodape="O que não coube nos outros campos. Toque no texto para editar; aceita listas, negrito e itálico."
+          >
+            <LinhaTextoRico rotulo="Observações" valor={dados.observacoes} aoMudar={v => mudar('observacoes', v || null)} />
           </Grupo>
 
           {/* Acompanhamento: só quando o processo já virou trabalho (em execução ou

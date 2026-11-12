@@ -101,6 +101,7 @@ export const COLUNAS: Record<TabelaSyncNome, Record<string, Tipo>> = {
     gargalos: 'texto',
     pontos_atencao: 'texto',
     ganho_esperado: 'texto',
+    observacoes: 'texto',
     eisenhower: 'numero',
     em_risco: 'bool',
     ganho_validado_pct: 'numero',
