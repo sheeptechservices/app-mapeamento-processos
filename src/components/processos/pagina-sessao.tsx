@@ -300,12 +300,12 @@ export function PaginaSessao({
                         <Kpi
                           rotulo="Feitos à mão"
                           valor={<NumeroAnimado deZero valor={manuais} formatar={n => numero(Math.round(n))} />}
-                          apoio={`${fracao(manuais)} dos processos são manuais`}
+                          apoio={perfil.total ? `${fracao(manuais)} dos processos são manuais` : 'Nenhum processo ainda'}
                         />
                         <Kpi
                           rotulo="Sem documentação"
                           valor={<NumeroAnimado deZero valor={semDoc} formatar={n => numero(Math.round(n))} />}
-                          apoio={`${fracao(semDoc)} dependem de quem faz`}
+                          apoio={perfil.total ? `${fracao(semDoc)} dependem de quem faz` : 'Nenhum processo ainda'}
                         />
                       </div>
 
