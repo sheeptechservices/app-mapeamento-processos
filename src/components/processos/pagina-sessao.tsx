@@ -15,8 +15,8 @@ import {
 } from '@/components/icons';
 import { tocouNoAvisoDeVersao } from '@/components/aviso-versao';
 import { BotaoAgrupar, GruposProcessos } from '@/components/processos/agrupar-processos';
-import { Colunas, Donut, Pirulito, Radar, RAMPA_AZUL, Waffle } from '@/components/processos/graficos-perfil';
-import { BarraEtapas, BarrasContagem } from '@/components/processos/graficos-sessao';
+import { Colunas, Donut, Pirulito, RAMPA_AZUL } from '@/components/processos/graficos-perfil';
+import { BarrasContagem } from '@/components/processos/graficos-sessao';
 import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components/processos/lista-processos';
 import { ORIGENS_FILTRO, PainelFiltros } from '@/components/processos/painel-filtros';
 import { useArrastarParaFechar } from '@/components/ui/arrastar-fechar';
@@ -31,7 +31,6 @@ import { contagem, perfilProcessos } from '@/lib/perfil';
 import { contarFiltros, etiquetasAtivas, FILTROS_VAZIOS, filtrarProcessos, type FiltrosProcesso } from '@/lib/filtros';
 import { horas, numero, percentual } from '@/lib/formato';
 import type { Carteira } from '@/lib/local/carteira';
-import { contarEtapas } from '@/lib/sessao-resumo';
 import { cn } from '@/lib/cn';
 
 const CONSULTA_ESTREITO = '(max-width: 619px)';
@@ -133,7 +132,6 @@ export function PaginaSessao({
   const info = { setor: setorDe, ganhoMes: (p: Processo) => carteira.roiDe(p).ganho_mes };
   const visiveis = filtrarProcessos(todos, filtros, 'todos', info);
   const grupos = agrupar === 'nenhum' ? null : agruparProcessos(visiveis, agrupar, { setor: setorDe, cfg: carteira.config });
-  const etapas = contarEtapas(todos);
   // Perfil dos processos (diagnóstico): como são feitos hoje, não o ganho.
   const perfil = perfilProcessos(todos, {
     setor: setorDe,
@@ -313,12 +311,9 @@ export function PaginaSessao({
 
                       {/* Gráficos simples */}
                       {todos.length > 0 && (
-                        <div className="mt-2.5 grid grid-flow-row-dense gap-2.5 @3xl:grid-cols-2 @6xl:grid-cols-3">
-                          <Quadro titulo="Processos por etapa">
-                            <BarraEtapas contagem={etapas} cfg={carteira.config} />
-                            {/* Prioridade: contagem direta, sem cor (quatro números leem melhor que um gráfico). */}
-                            <h3 className="mt-5 border-t border-borda pt-4 text-[13px] font-semibold">Por prioridade</h3>
-                            <AreaDica className="mt-3">
+                        <div className="mt-2.5 grid gap-2.5 @3xl:grid-cols-2 @7xl:grid-cols-4">
+                          <Quadro titulo="Por prioridade" className="col-span-full">
+                            <AreaDica>
                               <ul className="marcas grid grid-cols-4 gap-2">
                                 {PRIORIDADES.map(pr => {
                                   const daPrioridade = todos.filter(p => p.eisenhower === pr.valor);
@@ -349,12 +344,6 @@ export function PaginaSessao({
                               </ul>
                             </AreaDica>
                           </Quadro>
-                          <Quadro titulo="Sinais de automação" className="@3xl:row-span-2">
-                            <p className="-mt-1.5 mb-3 text-[12px] leading-relaxed text-tinta-2">
-                              Parte dos processos com cada sinal. Quanto mais aberta a forma, mais a sessão pede automação.
-                            </p>
-                            <Radar eixos={perfil.sinais} total={perfil.total} />
-                          </Quadro>
                           <Quadro titulo="Processos por setor">
                             <BarrasContagem
                               colorido
@@ -382,17 +371,6 @@ export function PaginaSessao({
                           </Quadro>
                           <Quadro titulo="Sistemas mais usados">
                             <Pirulito fatias={perfil.sistemas} total={perfil.total} vazio="Nenhum sistema citado ainda." />
-                          </Quadro>
-                          <Quadro titulo="De onde vêm os números">
-                            <Waffle
-                              fatias={perfil.origens}
-                              rotulo="Origem dos números"
-                              // Estimativa (cautela), cliente informou, medido: categorias com rótulo na legenda.
-                              cores={['var(--serie-4)', 'var(--serie-1)', 'var(--serie-6)']}
-                            />
-                            <p className="mt-4 border-t border-borda pt-3 text-[12px] leading-relaxed text-tinta-2">
-                              Um quadrinho por processo. Medido pesa mais no diagnóstico; estimativa é para validar com o cliente.
-                            </p>
                           </Quadro>
                         </div>
                       )}

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { AreaDica, useAlvoDica } from '@/components/ui/dica';
 import { horas, numero, percentual } from '@/lib/formato';
 import type { Fatia } from '@/lib/perfil';
@@ -8,10 +8,8 @@ import { cn } from '@/lib/cn';
 
 /*
  * Gráficos do perfil dos processos no quadro da sessão. Cada forma tem um
- * trabalho: donut para partes de um todo com poucas opções, radar para os sinais
- * de automação lado a lado, colunas para a frequência (ordem do período),
- * pirulito para os sistemas e waffle (um quadrinho por processo) para a origem
- * dos números. Cores: rampa ordinal --etapa-* para o que tem ordem, paleta
+ * trabalho: donut para partes de um todo com poucas opções, colunas para a
+ * frequência (ordem do período) e pirulito para os sistemas. Cores: rampa ordinal --etapa-* para o que tem ordem, paleta
  * categórica --serie-* para identidade, cinza para "Não informado". Nunca só
  * cor: sempre legenda ou rótulo escrito, e dica em cada marca.
  */
@@ -142,104 +140,6 @@ export function Donut({
   );
 }
 
-// ─── Radar ──────────────────────────────────────────────────────────────
-
-function PontosRadar({ eixos, total, pontos }: { eixos: RadarEixo[]; total: number; pontos: { x: number; y: number }[] }) {
-  const alvo = useAlvoDica();
-  return (
-    <>
-      {eixos.map((e, i) => (
-        <g key={e.chave} className="cursor-default" {...alvo(e.chave, <DicaSinal e={e} total={total} />)}>
-          {/* Alvo maior que a marca. */}
-          <circle cx={pontos[i].x} cy={pontos[i].y} r="13" fill="transparent" />
-          <circle cx={pontos[i].x} cy={pontos[i].y} r="4.5" fill="var(--verde-tinta)" stroke="var(--superficie)" strokeWidth="2" />
-        </g>
-      ))}
-    </>
-  );
-}
-
-type RadarEixo = { chave: string; rotulo: string; dica: string; n: number };
-
-function DicaSinal({ e, total }: { e: RadarEixo; total: number }) {
-  return (
-    <>
-      <strong>{e.rotulo}</strong>
-      {processos(e.n)} de {numero(total)} ({total ? percentual(e.n / total) : '-'})<span className="apoio">{e.dica}</span>
-    </>
-  );
-}
-
-/**
- * Radar dos sinais de automação: cada eixo vai de 0 a 100% dos processos.
- * Quanto mais aberta a forma, mais a sessão pede automação. Rótulos com o
- * percentual escrito ao lado de cada eixo.
- */
-export function Radar({ eixos, total }: { eixos: RadarEixo[]; total: number }) {
-  const C = 120;
-  const R = 78;
-  const angulo = (i: number) => (i / eixos.length) * 2 * Math.PI - Math.PI / 2;
-  const ponto = (i: number, f: number) => ({ x: C + Math.cos(angulo(i)) * R * f, y: C + Math.sin(angulo(i)) * R * f });
-  const fracoes = eixos.map(e => (total ? e.n / total : 0));
-  const pontos = fracoes.map((f, i) => ponto(i, Math.max(f, 0.02)));
-  const anel = (f: number) =>
-    eixos
-      .map((_, i) => ponto(i, f))
-      .map(p => `${p.x},${p.y}`)
-      .join(' ');
-  const resumo = eixos.map((e, i) => `${e.rotulo} ${percentual(fracoes[i])}`).join(', ');
-  return (
-    <AreaDica className="mx-auto w-full max-w-[360px]">
-      <div className="relative aspect-[4/3] w-full">
-        <svg
-          viewBox="-40 0 320 240"
-          className="absolute inset-0 size-full overflow-visible"
-          role="img"
-          aria-label={`Sinais de automação: ${resumo}`}
-        >
-          {[0.25, 0.5, 0.75, 1].map(f => (
-            <polygon
-              key={f}
-              points={anel(f)}
-              fill={f === 1 ? 'var(--sutil)' : 'none'}
-              fillOpacity={0.5}
-              stroke="var(--borda)"
-              strokeWidth="1"
-            />
-          ))}
-          {eixos.map((e, i) => {
-            const p = ponto(i, 1);
-            return <line key={e.chave} x1={C} y1={C} x2={p.x} y2={p.y} stroke="var(--borda)" strokeWidth="1" />;
-          })}
-          <polygon
-            points={pontos.map(p => `${p.x},${p.y}`).join(' ')}
-            fill="var(--verde)"
-            fillOpacity="0.45"
-            stroke="var(--verde-tinta)"
-            strokeWidth="2"
-            strokeLinejoin="round"
-            className="radar-entra"
-          />
-          <PontosRadar eixos={eixos} total={total} pontos={pontos} />
-          {eixos.map((e, i) => {
-            const p = ponto(i, 1.2);
-            const cos = Math.cos(angulo(i));
-            const ancora = Math.abs(cos) < 0.2 ? 'middle' : cos > 0 ? 'start' : 'end';
-            return (
-              <text key={e.chave} x={p.x} y={p.y} textAnchor={ancora} dominantBaseline="middle" className="fill-tinta-2 text-[10.5px]">
-                {e.rotulo}
-                <tspan className="numeros fill-tinta" dx="4">
-                  {percentual(fracoes[i])}
-                </tspan>
-              </text>
-            );
-          })}
-        </svg>
-      </div>
-    </AreaDica>
-  );
-}
-
 // ─── Colunas ────────────────────────────────────────────────────────────
 
 function Coluna({ f, total, maior, cor }: { f: Fatia; total: number; maior: number; cor: string }) {
@@ -315,51 +215,5 @@ export function Pirulito({ fatias, total, maximo = 7, vazio }: { fatias: Fatia[]
         <p className="mt-3 text-[12px] text-tinta-3">e mais {fatias.length - maximo} citados uma ou poucas vezes</p>
       )}
     </AreaDica>
-  );
-}
-
-// ─── Waffle ─────────────────────────────────────────────────────────────
-
-function Quadrinho({ f, total, cor, style }: { f: Fatia; total: number; cor: string; style?: CSSProperties }) {
-  const alvo = useAlvoDica();
-  return (
-    <span
-      className="aspect-square cursor-default rounded-[3px] [animation:surge_0.4s_var(--curva)_both]"
-      style={{ background: cor, ...style }}
-      {...alvo(f.chave || 'sem', <DicaFatia f={f} total={total} />)}
-    />
-  );
-}
-
-/**
- * Waffle: um quadrinho por processo (acima de 100, cada um vale 1%), na cor da
- * fatia. Mostra de relance quanto do todo é de cada tipo.
- */
-export function Waffle({ fatias, rotulo, cores: paleta }: { fatias: Fatia[]; rotulo: string; cores?: string[] }) {
-  const total = fatias.reduce((a, f) => a + f.n, 0);
-  const cores = coresOrdinais(fatias, paleta);
-  const porCelula = total > 100 ? total / 100 : 1;
-  const celulas = fatias.flatMap((f, i) => Array.from({ length: Math.round(f.n / porCelula) }, () => ({ f, cor: cores[i] })));
-  const resumo = fatias
-    .filter(f => f.n)
-    .map(f => `${f.n} ${f.rotulo.toLowerCase()}`)
-    .join(', ');
-  return (
-    <div>
-      <AreaDica>
-        <div
-          role="img"
-          aria-label={`${rotulo}: ${resumo || 'nenhum processo'}`}
-          className="marcas grid grid-cols-[repeat(10,minmax(0,1fr))] gap-[3px]"
-        >
-          {celulas.map((c, i) => (
-            <Quadrinho key={i} f={c.f} total={total} cor={c.cor} style={{ animationDelay: `${Math.min(i * 8, 400)}ms` }} />
-          ))}
-        </div>
-      </AreaDica>
-      <div className="mt-3">
-        <Legenda fatias={fatias} cores={cores} colunas={2} />
-      </div>
-    </div>
   );
 }

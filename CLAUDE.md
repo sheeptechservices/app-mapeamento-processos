@@ -26,9 +26,10 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   das etapas, pasta que entreabre no hover e fica aberta com o quadro) que abre o **quadro da sessão** por cima do
   mapa (`?s=`, `components/processos/pagina-sessao.tsx`, Radix Dialog z-40; painéis de processo z-50 por cima):
   indicadores e gráficos de **perfil** dos processos, não de ganho (é mapa para o relatório de diagnóstico: `lib/perfil.ts`
-  com teste; etapas, prioridade, setor, como é feito hoje, frequência, sistemas, origem dos números em
-  `graficos-sessao.tsx`; radar de sinais de automação, donuts, colunas, pirulito e waffle em `graficos-perfil.tsx`;
-  cores: rampa verde `--etapa-*`, rampa azul `--azul-1..3`, categórica `--serie-1..7`, todas validadas), busca e filtros
+  com teste): por prioridade, por setor (barras com cor por setor), como é feito hoje (donuts), frequência (colunas)
+  e sistemas (pirulito), em `graficos-perfil.tsx` e `graficos-sessao.tsx`. O usuário tirou etapas, origem dos números
+  e sinais de automação do quadro. Cores: rampa verde `--etapa-*`, azul `--azul-1..3`, categórica `--serie-1..7`,
+  todas validadas. Busca e filtros
   próprios, agrupar por setor/prioridade/frequência (`lib/agrupar.ts`, `agrupar-processos.tsx`; grupos recolhem),
   lista de processos (`lista-processos.tsx`, compartilhada com o mapa). Expandir (desktop) anima as margens
   do quadro até as bordas (`.quadro-sessao`/`.expandido`); Esc recolhe e depois fecha. No celular é folha de baixo

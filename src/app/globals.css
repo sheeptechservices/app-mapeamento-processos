@@ -431,16 +431,10 @@ textarea.campo {
     transform: scaleX(0);
   }
 }
-/* Gráficos de perfil (graficos-perfil.tsx): coluna sobe, quadrinho surge, donut gira, radar abre. */
+/* Gráficos de perfil (graficos-perfil.tsx): coluna sobe, donut gira. */
 @keyframes sobe {
   from {
     transform: scaleY(0);
-  }
-}
-@keyframes surge {
-  from {
-    opacity: 0;
-    scale: 0.4;
   }
 }
 .donut-entra {
@@ -450,17 +444,6 @@ textarea.campo {
   from {
     opacity: 0;
     rotate: -60deg;
-  }
-}
-.radar-entra {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: radar-abre 0.7s var(--curva) both;
-}
-@keyframes radar-abre {
-  from {
-    opacity: 0;
-    scale: 0.3;
   }
 }
 /* Fatia de donut em foco: as outras esmaecem. */
