@@ -7,7 +7,7 @@ import { SeloRisco, SeloStatus } from '@/components/selos';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { ItemVivo, Pulso } from '@/components/ui/vivo';
 import type { Processo } from '@/lib/dominio';
-import { horas, reais } from '@/lib/formato';
+import { reais } from '@/lib/formato';
 import type { Carteira } from '@/lib/local/carteira';
 import { cn } from '@/lib/cn';
 
@@ -115,8 +115,7 @@ export function LinhaProcesso({
   acoes: AcoesProcesso;
 }) {
   const r = carteira.roiDe(p);
-  const setor = p.area_id ? carteira.areaPorId.get(p.area_id)?.nome : null;
-  // Espaço curto (celular): só o nome e, embaixo, o começo da descrição (sem o código).
+  // Nome e, embaixo, o começo da descrição. Em espaço curto (celular) o código some.
   const descricao = p.descricao?.replace(/\s+/g, ' ').trim();
   return (
     <ItemVivo className="border-t border-borda first:border-t-0">
@@ -132,12 +131,10 @@ export function LinhaProcesso({
           >
             {p.titulo || 'Sem título'}
           </button>
-          <p className="mt-0.5 truncate text-[12px] text-tinta-2 @max-xl:hidden">
-            {setor ? `# ${setor}` : 'Sem setor'}
-            {r.horas_mes != null ? ` - ${horas(r.horas_mes)}/mês` : ''}
-            {!r.completo ? ` - falta ${r.faltando.length === 1 ? '1 número' : `${r.faltando.length} números`}` : ''}
+          {/* Embaixo do nome, sempre a Descrição (cortada; inteira ao passar o mouse). */}
+          <p title={descricao || undefined} className={cn('mt-0.5 truncate text-[12px]', descricao ? 'text-tinta-2' : 'text-tinta-3')}>
+            {descricao || 'Sem descrição'}
           </p>
-          <p className={cn('mt-0.5 truncate text-[12px] @xl:hidden', descricao ? 'text-tinta-2' : 'text-tinta-3')}>{descricao || 'Sem descrição'}</p>
         </div>
         <span className="hidden w-[112px] shrink-0 tablet:block @max-xl:!hidden">
           {p.em_risco ? <SeloRisco /> : <SeloStatus status={p.status} cfg={carteira.config} />}
