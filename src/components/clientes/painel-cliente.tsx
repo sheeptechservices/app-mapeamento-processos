@@ -209,7 +209,12 @@ export function PainelCliente({
               />
             </Grupo>
             <Grupo titulo="Ficha">
-              <LinhaTextoRico rotulo="Contexto específico" valor={dados.observacoes} aoMudar={v => mudar('observacoes', v || null)} />
+              <LinhaTextoRico rotulo="Contexto geral" valor={dados.observacoes} aoMudar={v => mudar('observacoes', v || null)} />
+              <LinhaTextoRico
+                rotulo="Contexto específico"
+                valor={dados.contexto_especifico}
+                aoMudar={v => mudar('contexto_especifico', v || null)}
+              />
             </Grupo>
           </fieldset>
         )}

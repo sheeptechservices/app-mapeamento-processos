@@ -57,8 +57,10 @@ export interface Cliente extends Registro {
   instagram: string | null;
   /** Sócios e quem decide, um por linha. */
   socios: string | null;
-  /** Ficha livre: história, produtos, números, o que levar para a visita. */
+  /** Contexto geral (ficha livre): história, produtos, números, o que levar para a visita. */
   observacoes: string | null;
+  /** Contexto específico: o recorte desta empresa que importa para o mapeamento. */
+  contexto_especifico: string | null;
 }
 
 // ─── Sessão de mapeamento ─────────────────────────────────────────────────

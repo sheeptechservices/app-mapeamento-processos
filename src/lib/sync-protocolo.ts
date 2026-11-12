@@ -56,6 +56,7 @@ export const COLUNAS: Record<TabelaSyncNome, Record<string, Tipo>> = {
     instagram: 'texto',
     socios: 'texto',
     observacoes: 'texto',
+    contexto_especifico: 'texto',
   },
   sessoes: {
     cliente_id: 'texto',

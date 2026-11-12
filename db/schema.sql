@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS clientes (
   instagram          TEXT,
   socios             TEXT,
   observacoes        TEXT,
+  contexto_especifico TEXT,
   criado_em          INTEGER NOT NULL,
   atualizado_em      INTEGER NOT NULL,
   excluido           INTEGER NOT NULL DEFAULT 0,

@@ -204,6 +204,7 @@ export function dadosClienteVazio(): Dados<Cliente> {
     instagram: null,
     socios: null,
     observacoes: null,
+    contexto_especifico: null,
   };
 }
 
