@@ -87,3 +87,13 @@ export function useCapturas(sessaoId: string | null | undefined) {
     return vivos(await banco().capturas.where('sessao_id').equals(sessaoId).toArray()).sort((a, b) => b.criado_em - a.criado_em);
   }, [sessaoId]);
 }
+
+/** Anexos (fotos e links) de um processo, na ordem em que entraram. */
+export function useAnexos(processoId: string | null | undefined) {
+  return useLiveQuery(async () => {
+    if (!processoId) return [];
+    return vivos(await banco().anexos.where('processo_id').equals(processoId).toArray()).sort(
+      (a, b) => a.ordem - b.ordem || a.criado_em - b.criado_em,
+    );
+  }, [processoId]);
+}

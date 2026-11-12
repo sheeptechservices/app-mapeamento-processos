@@ -4,6 +4,7 @@ import {
   CONFIG_PADRAO,
   IA_PADRAO,
   SETORES_PADRAO,
+  type Anexo,
   type Area,
   type Captura,
   type Cliente,
@@ -75,10 +76,13 @@ type TipoDe<N extends Tabela> = {
   roteiro_blocos: RoteiroBloco;
   roteiro_perguntas: RoteiroPergunta;
   capturas: Captura;
+  anexos: Anexo;
 }[N];
 
 async function inserir<T extends Registro>(tabela: Tabela, reg: T) {
-  await banco().tabela(tabela).add(reg as never);
+  await banco()
+    .tabela(tabela)
+    .add(reg as never);
   aoGravar?.();
   return reg;
 }
@@ -212,6 +216,7 @@ export async function excluirCliente(id: string) {
   const sessoes = await banco().sessoes.where('cliente_id').equals(id).primaryKeys();
   await Promise.all(sessoes.map(excluirSessao));
   await excluirFilhas('processos', 'cliente_id', id);
+  await excluirFilhas('anexos', 'cliente_id', id);
   await excluir('clientes', id);
 }
 
@@ -248,7 +253,9 @@ export async function criarSessao(cliente_id: string, dados: Partial<Dados<Sessa
 
 export async function excluirSessao(id: string) {
   await Promise.all(
-    (['areas', 'processos', 'roteiro_blocos', 'roteiro_perguntas', 'capturas'] as const).map(t => excluirFilhas(t, 'sessao_id', id)),
+    (['areas', 'processos', 'anexos', 'roteiro_blocos', 'roteiro_perguntas', 'capturas'] as const).map(t =>
+      excluirFilhas(t, 'sessao_id', id),
+    ),
   );
   await excluir('sessoes', id);
 }
@@ -331,6 +338,34 @@ export async function criarProcesso(sessao_id: string, area_id: string | null, d
       sessao_id,
       cliente_id: sessao.cliente_id,
       area_id: dados.area_id !== undefined ? dados.area_id : area_id,
+    }),
+  );
+}
+
+/** Exclui o processo e os anexos dele. */
+export async function excluirProcesso(id: string) {
+  await excluirFilhas('anexos', 'processo_id', id);
+  await excluir('processos', id);
+}
+
+// ─── Anexos ───────────────────────────────────────────────────────────────
+
+/** Novo anexo (foto ou link) no fim da lista do processo. */
+export async function criarAnexo(processo_id: string, dados: Pick<Anexo, 'tipo'> & Partial<Pick<Anexo, 'url' | 'imagem' | 'descricao'>>) {
+  const processo = await banco().processos.get(processo_id);
+  if (!processo) throw new Error('processo não encontrado');
+  const ordem = await banco().anexos.where('processo_id').equals(processo_id).count();
+  return inserir(
+    'anexos',
+    novoRegistro<Anexo>({
+      processo_id,
+      sessao_id: processo.sessao_id,
+      cliente_id: processo.cliente_id,
+      tipo: dados.tipo,
+      url: dados.url ?? null,
+      imagem: dados.imagem ?? null,
+      descricao: dados.descricao ?? null,
+      ordem,
     }),
   );
 }

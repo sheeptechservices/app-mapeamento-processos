@@ -13,7 +13,10 @@ import type { Client, InValue, Row } from '@libsql/client';
 import {
   CAMPOS_CONTROLE_MESCLADOS,
   COLUNAS,
+  COLUNA_ARQUIVO,
+  ORCAMENTO_BYTES,
   SOBREPOSICAO_MS,
+  TABELAS_PAGINADAS,
   TABELAS,
   type ConflitoSync,
   type RegistroWire,
@@ -164,14 +167,7 @@ async function gravarRegistro(
       sql: `UPDATE ${tabela} SET ${camposSet.map(c => `${c} = ?`).join(', ')},
               campos_ts = ?, campos_sync = ?, atualizado_em = MAX(atualizado_em, ?), sincronizado_em = ?
             WHERE id = ?`,
-      args: [
-        ...camposSet.map(c => sets[c]),
-        JSON.stringify(novosTs),
-        JSON.stringify(novosSync),
-        r.atualizado_em,
-        agora,
-        r.id,
-      ] as InValue[],
+      args: [...camposSet.map(c => sets[c]), JSON.stringify(novosTs), JSON.stringify(novosSync), r.atualizado_em, agora, r.id] as InValue[],
     });
   }
   return disputados.length ? { conflito: disputados } : {};
@@ -192,7 +188,9 @@ export async function processarSync(db: Client, sessao: SessaoSync, corpo: unkno
           recusados.push({ tabela, id: r.id });
           continue;
         }
-        const res = await gravarRegistro(tx, tabela, r, sessao, pedido.desde, agora);
+        // Tabela paginada: cada registro ganha um carimbo próprio, para a página
+        // poder parar entre dois registros sem pular nenhum.
+        const res = await gravarRegistro(tx, tabela, r, sessao, pedido.desde, TABELAS_PAGINADAS.includes(tabela) ? carimbo() : agora);
         if (res.recusado) recusados.push({ tabela, id: r.id });
         if (res.conflito) conflitos.push({ tabela, id: r.id, campos: res.conflito });
       }
@@ -205,17 +203,65 @@ export async function processarSync(db: Client, sessao: SessaoSync, corpo: unkno
     tx.close();
   }
 
-  const desde = Math.max(0, pedido.desde - SOBREPOSICAO_MS);
+  // Página seguinte de uma resposta grande: cursor exato, senão a sobreposição
+  // mandaria de novo os mesmos anexos e a página nunca andaria.
+  const desde = pedido.continuacao ? pedido.desde : Math.max(0, pedido.desde - SOBREPOSICAO_MS);
   const registros = {} as RespostaSync['registros'];
   let cursor = pedido.desde;
+  let limite = Infinity; // cursor máximo seguro quando uma tabela paginada parou no meio
+  let mais = false;
   for (const tabela of TABELAS) {
+    const paginada = TABELAS_PAGINADAS.includes(tabela);
     const { rows } = await db.execute({
-      sql: `SELECT * FROM ${tabela} WHERE organizacao_id = ? AND sincronizado_em > ? ORDER BY sincronizado_em`,
+      sql: `SELECT * FROM ${tabela} WHERE organizacao_id = ? AND sincronizado_em > ? ORDER BY sincronizado_em, id${paginada ? ' LIMIT 400' : ''}`,
       args: [sessao.org, desde],
     });
-    registros[tabela] = rows.map(row => linhaParaWire(tabela, row));
-    for (const row of rows) cursor = Math.max(cursor, Number(row.sincronizado_em));
+    let linhas = rows;
+    let wire = rows.map(row => linhaParaWire(tabela, row));
+    if (paginada) {
+      const arquivo = COLUNA_ARQUIVO[tabela];
+      // Janela de sobreposição: o aparelho já recebeu esses; vão sem o arquivo.
+      if (arquivo)
+        wire = wire.map((w, i) => {
+          if (Number(rows[i].sincronizado_em) > pedido.desde) return w;
+          const { [arquivo]: _arquivo, ...leve } = w;
+          void _arquivo;
+          return { ...leve, _sem_arquivo: true };
+        });
+      // Junta até o orçamento de bytes, sem cortar entre registros de mesmo carimbo.
+      let bytes = 0;
+      let corte = rows.length;
+      for (let i = 0; i < rows.length; i++) {
+        const ts = Number(rows[i].sincronizado_em);
+        if (i > 0 && bytes >= ORCAMENTO_BYTES && ts !== Number(rows[i - 1].sincronizado_em)) {
+          corte = i;
+          break;
+        }
+        bytes += JSON.stringify(wire[i]).length;
+      }
+      linhas = rows.slice(0, corte);
+      wire = wire.slice(0, corte);
+      if (corte < rows.length || rows.length === 400) {
+        mais = true;
+        limite = Math.min(limite, Number(linhas[linhas.length - 1].sincronizado_em));
+      }
+      // Pedidos de arquivo que faltaram no aparelho: vão inteiros.
+      const buscar = (pedido.buscar ?? []).filter(id => !wire.some(w => w.id === id && !w._sem_arquivo));
+      if (buscar.length) {
+        const { rows: achados } = await db.execute({
+          sql: `SELECT * FROM ${tabela} WHERE organizacao_id = ? AND id IN (${buscar.map(() => '?').join(',')})`,
+          args: [sessao.org, ...buscar],
+        });
+        const inteiros = achados.map(row => linhaParaWire(tabela, row));
+        wire = [...wire.filter(w => !inteiros.some(x => x.id === w.id)), ...inteiros];
+      }
+    }
+    registros[tabela] = wire;
+    for (const row of linhas) cursor = Math.max(cursor, Number(row.sincronizado_em));
   }
+  // Parou no meio de uma tabela paginada: o cursor não pode passar do último anexo
+  // enviado (o resto das outras tabelas vem de novo na próxima página, sem prejuízo).
+  if (mais) cursor = Math.max(pedido.desde, Math.min(cursor, limite));
 
-  return { cursor, registros, conflitos, recusados };
+  return { cursor, registros, conflitos, recusados, ...(mais ? { mais } : {}) };
 }

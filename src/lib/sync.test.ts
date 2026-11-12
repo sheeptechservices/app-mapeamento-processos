@@ -5,7 +5,17 @@ import { createClient, type Client } from '@libsql/client';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BancoLocal, usarBanco } from './local/banco';
-import { atualizar, criarArea, criarCliente, criarProcesso, criarSessao, definirAutor, excluir } from './local/repo';
+import {
+  atualizar,
+  criarAnexo,
+  criarArea,
+  criarCliente,
+  criarProcesso,
+  criarSessao,
+  definirAutor,
+  excluir,
+  excluirProcesso,
+} from './local/repo';
 import { rodadaSync, type Transporte } from './local/sync';
 import { processarSync, type SessaoSync } from './servidor/sync';
 
@@ -57,9 +67,7 @@ beforeEach(async () => {
   servidor = createClient({ url: ':memory:' });
   await servidor.executeMultiple(readFileSync('db/schema.sql', 'utf8'));
   // No app a organização nasce no primeiro login (upsertUsuario).
-  await servidor.execute(
-    `INSERT INTO organizacoes (id, nome, criado_em) VALUES ('sheep', 'Sheep', 0), ('outra-consultoria', 'Outra', 0)`,
-  );
+  await servidor.execute(`INSERT INTO organizacoes (id, nome, criado_em) VALUES ('sheep', 'Sheep', 0), ('outra-consultoria', 'Outra', 0)`);
 });
 
 afterEach(() => {
@@ -68,15 +76,103 @@ afterEach(() => {
 });
 
 describe('sincronização entre aparelhos', () => {
+  it('fotos grandes vão e voltam em partes, sem passar do limite de um pedido', async () => {
+    const celular = aparelho(ORG);
+    const desktop = aparelho(ORG_B);
+    const lev = await em(celular, () => clienteComSessao('Atacadista'));
+    const p = await em(celular, () => criarProcesso(lev.id, null, { titulo: 'Recebimento de mercadorias' }));
+    const foto = `data:image/webp;base64,${'A'.repeat(300_000)}`;
+    for (let i = 0; i < 20; i++) await em(celular, () => criarAnexo(p.id, { tipo: 'foto', imagem: foto, descricao: `Doca ${i + 1}` }));
+    await em(celular, () => criarAnexo(p.id, { tipo: 'link', url: 'https://exemplo.com/planilha', descricao: 'Planilha de recebimento' }));
+
+    // Mede o tamanho de cada pedido e de cada resposta, como a Vercel veria.
+    const idas: number[] = [];
+    const voltas: number[] = [];
+    const medindo =
+      (s: SessaoSync): Transporte =>
+      async pedido => {
+        idas.push(JSON.stringify(pedido).length);
+        const r = await transporte(s)(pedido);
+        voltas.push(JSON.stringify(r).length);
+        return r;
+      };
+
+    passo();
+    await em(celular, () => rodadaSync(medindo(celular.sessao), celular.db));
+    expect(idas.length).toBeGreaterThan(2);
+    expect(Math.max(...idas)).toBeLessThan(4_500_000);
+    expect(await celular.db.anexos.where('_pendente').equals(1).count()).toBe(0);
+
+    passo();
+    idas.length = 0;
+    voltas.length = 0;
+    await em(desktop, () => rodadaSync(medindo(desktop.sessao), desktop.db));
+    expect(voltas.length).toBeGreaterThan(2);
+    expect(Math.max(...voltas)).toBeLessThan(4_500_000);
+    const anexos = await desktop.db.anexos.where('processo_id').equals(p.id).toArray();
+    expect(anexos).toHaveLength(21);
+    expect(anexos.filter(a => a.tipo === 'foto').every(a => a.imagem === foto)).toBe(true);
+    expect(anexos.find(a => a.tipo === 'link')).toMatchObject({
+      url: 'https://exemplo.com/planilha',
+      descricao: 'Planilha de recebimento',
+    });
+
+    // Sincronizar de novo não traz as fotos outra vez.
+    passo(10_000);
+    voltas.length = 0;
+    await em(desktop, () => rodadaSync(medindo(desktop.sessao), desktop.db));
+    expect(Math.max(...voltas)).toBeLessThan(50_000);
+  });
+
+  it('foto que chegou sem o arquivo (janela de sobreposição) é pedida inteira na rodada seguinte', async () => {
+    const a = aparelho(ORG);
+    const b = aparelho(ORG_B);
+    const lev = await em(a, () => clienteComSessao('Clínica'));
+    const p = await em(a, () => criarProcesso(lev.id, null, { titulo: 'Recepção' }));
+    const foto = await em(a, () => criarAnexo(p.id, { tipo: 'foto', imagem: 'data:image/webp;base64,QUJD', descricao: 'Balcão' }));
+    passo();
+    await sync(a);
+    passo();
+    await sync(b);
+    // Simula o caso raro: o aparelho perdeu o registro que está dentro da janela do cursor.
+    await b.db.anexos.delete(foto.id);
+    passo();
+    await sync(b);
+    expect(await b.db.anexos.get(foto.id)).toMatchObject({ descricao: 'Balcão' });
+    expect((await b.db.anexos.get(foto.id))?.imagem ?? null).toBeNull();
+    passo();
+    await sync(b);
+    expect(await b.db.anexos.get(foto.id)).toMatchObject({ imagem: 'data:image/webp;base64,QUJD', _pendente: 0 });
+  });
+
+  it('excluir o processo leva os anexos junto, nos dois aparelhos', async () => {
+    const a = aparelho(ORG);
+    const b = aparelho(ORG_B);
+    const lev = await em(a, () => clienteComSessao('Clínica'));
+    const p = await em(a, () => criarProcesso(lev.id, null, { titulo: 'Agendamento' }));
+    const anexo = await em(a, () => criarAnexo(p.id, { tipo: 'link', url: 'https://exemplo.com', descricao: 'Agenda' }));
+    passo();
+    await sync(a);
+    passo();
+    await sync(b);
+    expect(await b.db.anexos.get(anexo.id)).toMatchObject({ excluido: 0 });
+
+    passo();
+    await em(a, () => excluirProcesso(p.id));
+    await sync(a);
+    passo();
+    await sync(b);
+    expect(await b.db.anexos.get(anexo.id)).toMatchObject({ excluido: 1 });
+    expect(await b.db.processos.get(p.id)).toMatchObject({ excluido: 1 });
+  });
+
   it('o que foi criado offline num aparelho chega no outro', async () => {
     const celular = aparelho(ORG);
     const desktop = aparelho(ORG_B);
 
     const lev = await em(celular, () => clienteComSessao('Contabilidade Horizonte', { custo_hora: 48 }));
     const area = await em(celular, () => criarArea(lev.id, { nome: 'Fiscal' }));
-    const p = await em(celular, () =>
-      criarProcesso(lev.id, area.id, { titulo: 'Importação de XML', vezes_mes: 300, tempo_medio_min: 10 }),
-    );
+    const p = await em(celular, () => criarProcesso(lev.id, area.id, { titulo: 'Importação de XML', vezes_mes: 300, tempo_medio_min: 10 }));
 
     passo();
     const r1 = await sync(celular);

@@ -5,7 +5,7 @@
 // atropelado, só fica pendente para o envio seguinte.
 import Dexie from 'dexie';
 import type { Registro } from '@/lib/dominio';
-import { TABELAS, type PedidoSync, type RespostaSync } from '@/lib/sync-protocolo';
+import { COLUNA_ARQUIVO, ORCAMENTO_BYTES, TABELAS, type PedidoSync, type RespostaSync } from '@/lib/sync-protocolo';
 import { banco, type BancoLocal } from './banco';
 import { mesclarPorCampo } from './mesclar';
 import { garantirConfiguracoes, quandoGravar } from './repo';
@@ -48,21 +48,27 @@ export async function rodadaSync(transporte: Transporte, db: BancoLocal = banco(
   const lotes: PedidoSync['mudancas'][] = [];
   let atual: PedidoSync['mudancas'] = {};
   let noLote = 0;
+  let bytes = 0;
   TABELAS.forEach((t, i) => {
     for (const reg of pendentes[i]) {
-      if (noLote >= LOTE) {
-        lotes.push(atual);
-        atual = {};
-        noLote = 0;
-      }
       const { _pendente, _conflitos, ...resto } = reg;
       void _pendente;
       void _conflitos;
       const alterados = Object.entries(reg._ts ?? {})
         .filter(([, ts]) => ts > ultimaLocal)
         .map(([c]) => c);
-      (atual[t] ??= []).push({ ...resto, _alterados: alterados } as never);
+      const item = { ...resto, _alterados: alterados };
+      // Corta o lote por quantidade e por tamanho (fotos pesam): cada pedido cabe no limite da Vercel.
+      const tamanho = JSON.stringify(item).length;
+      if (noLote > 0 && (noLote >= LOTE || bytes + tamanho > ORCAMENTO_BYTES)) {
+        lotes.push(atual);
+        atual = {};
+        noLote = 0;
+        bytes = 0;
+      }
+      (atual[t] ??= []).push(item as never);
       noLote++;
+      bytes += tamanho;
     }
   });
   lotes.push(atual);
@@ -70,27 +76,49 @@ export async function rodadaSync(transporte: Transporte, db: BancoLocal = banco(
   let recebidos = 0;
   let conflitos = 0;
   let cursorAtual = cursor;
-  for (const mudancas of lotes) {
-    const resp = await transporte({ desde: cursorAtual, mudancas });
-    const r = await aplicarResposta(db, resp);
+  // Anexos que chegaram sem o arquivo numa rodada anterior: pede inteiros no primeiro pedido.
+  const faltando = new Set(((await db.meta.get('anexos_faltando'))?.valor as string[] | undefined) ?? []);
+  let mais = false;
+  for (const [n, mudancas] of lotes.entries()) {
+    const buscar = n === 0 && faltando.size ? [...faltando].slice(0, 500) : undefined;
+    const resp = await transporte({ desde: cursorAtual, mudancas, ...(buscar ? { buscar } : {}) });
+    const r = await aplicarResposta(db, resp, faltando);
     recebidos += r.recebidos;
     conflitos += r.conflitos;
     cursorAtual = resp.cursor;
+    mais = !!resp.mais;
+  }
+  // Anexos em páginas: pede o resto até acabar (com teto, por segurança).
+  for (let pagina = 0; mais && pagina < 500; pagina++) {
+    const resp = await transporte({ desde: cursorAtual, mudancas: {}, continuacao: true });
+    const r = await aplicarResposta(db, resp, faltando);
+    recebidos += r.recebidos;
+    conflitos += r.conflitos;
+    cursorAtual = resp.cursor;
+    mais = !!resp.mais;
   }
 
   await db.meta.put({ chave: 'ultima_local', valor: inicio });
   return { enviados: total, recebidos, conflitos };
 }
 
-async function aplicarResposta(db: BancoLocal, resp: RespostaSync) {
+async function aplicarResposta(db: BancoLocal, resp: RespostaSync, faltando: Set<string>) {
   let recebidos = 0;
   const tabelas = [...TABELAS.map(t => db.tabela(t)), db.meta];
   await db.transaction('rw', tabelas, async () => {
     for (const t of TABELAS) {
       const tb = db.tabela(t);
+      const arquivo = COLUNA_ARQUIVO[t];
       for (const remotoBruto of resp.registros[t] ?? []) {
-        const remoto = { ...remotoBruto, _pendente: 0 } as unknown as Registro & Record<string, unknown>;
+        const { _sem_arquivo, ...semMarca } = remotoBruto as Record<string, unknown>;
+        const remoto = { ...semMarca, _pendente: 0 } as unknown as Registro & Record<string, unknown>;
         const local = await tb.get(remoto.id);
+        // Veio sem o arquivo (janela de sobreposição): fica o que o aparelho já tem;
+        // se não tiver, pede o registro inteiro na próxima rodada.
+        if (_sem_arquivo && arquivo) {
+          if (local?.[arquivo] != null) remoto[arquivo] = local[arquivo];
+          else faltando.add(remoto.id);
+        } else if (arquivo) faltando.delete(remoto.id);
         if (!local) {
           await tb.put(remoto);
         } else {
@@ -113,6 +141,7 @@ async function aplicarResposta(db: BancoLocal, resp: RespostaSync) {
       if (reg) await tb.put({ ...reg, _pendente: 0 });
     }
     await db.meta.put({ chave: 'cursor', valor: resp.cursor });
+    await db.meta.put({ chave: 'anexos_faltando', valor: [...faltando] });
   });
   return { recebidos, conflitos: resp.conflitos.length };
 }

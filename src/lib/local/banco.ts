@@ -7,6 +7,7 @@
 // tinha dado de teste e o servidor também foi recriado.
 import Dexie, { type EntityTable, type Table } from 'dexie';
 import type {
+  Anexo,
   Area,
   Captura,
   Cliente,
@@ -36,6 +37,7 @@ export class BancoLocal extends Dexie {
   roteiro_blocos!: EntityTable<RoteiroBloco, 'id'>;
   roteiro_perguntas!: EntityTable<RoteiroPergunta, 'id'>;
   capturas!: EntityTable<Captura, 'id'>;
+  anexos!: EntityTable<Anexo, 'id'>;
   meta!: Table<Meta, string>;
 
   constructor(nome = 'sheep-mapeamento') {
@@ -51,6 +53,8 @@ export class BancoLocal extends Dexie {
       capturas: 'id, sessao_id, _pendente',
       meta: 'chave',
     });
+    // Anexos do processo (fotos e links).
+    this.version(2).stores({ anexos: 'id, processo_id, sessao_id, cliente_id, _pendente' });
   }
 
   tabela(nome: TabelaSync) {

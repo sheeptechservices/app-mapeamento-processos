@@ -166,6 +166,26 @@ export interface Captura extends Registro {
   status: StatusCaptura;
 }
 
+// ─── Anexos do processo ───────────────────────────────────────────────────
+
+/**
+ * Anexo de um processo: foto (galeria ou câmera, reduzida no aparelho e
+ * guardada como data URL) ou link, cada um com uma descrição breve.
+ */
+export interface Anexo extends Registro {
+  processo_id: string;
+  /** Repetidos do processo para a exclusão em cascata de sessão e cliente. */
+  sessao_id: string;
+  cliente_id: string;
+  tipo: 'foto' | 'link';
+  /** Endereço do link (tipo link). */
+  url: string | null;
+  /** Foto reduzida em data URL (tipo foto). */
+  imagem: string | null;
+  descricao: string | null;
+  ordem: number;
+}
+
 // ─── Configurações da organização ─────────────────────────────────────────
 
 export interface ModeloRoteiro {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { IconAlerta, IconCheck, IconExcluir } from '@/components/icons';
 import { Avatar } from '@/components/ui/avatar';
 import { Confirmar } from '@/components/ui/confirmar';
+import { useAnexosProcesso } from '@/components/processos/anexos-processo';
 import { LinhaTextoRico } from '@/components/ui/texto-rico';
 import { Grupo, Linha, LinhaInterruptor, LinhaNumero, LinhaTexto, LinhaTextoLongo, ListaEscolha, Segmentado } from '@/components/ui/linhas';
 import { Painel, RodapePainel } from '@/components/ui/painel';
@@ -37,7 +38,7 @@ import { useCarteira } from '@/lib/local/carteira';
 import { useAreas } from '@/lib/local/consultas';
 import { useEquipe } from '@/lib/local/equipe';
 import { comIndicador, useFormulario } from '@/lib/local/gravacao';
-import { aceitarConflitos, areaDoSetor, criarProcesso, dadosProcessoVazio, excluir, lembrarOpcao } from '@/lib/local/repo';
+import { aceitarConflitos, areaDoSetor, criarProcesso, dadosProcessoVazio, excluirProcesso, lembrarOpcao } from '@/lib/local/repo';
 import { AvisoRascunho } from '@/components/ui/aviso-rascunho';
 import { calcularProcesso, ROTULO_CAMPO_ROI } from '@/lib/roi';
 import { cn } from '@/lib/cn';
@@ -162,6 +163,7 @@ export function PainelProcesso({
     aberto && !processo ? `processo:${sessao.id}` : null,
   );
   const setorNovo = (extras.setor as string | null | undefined) ?? null;
+  const { grupo: grupoAnexos, subtelas: subtelasAnexos } = useAnexosProcesso(processo?.id ?? null, podeEditar);
   const [excluindo, setExcluindo] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
@@ -326,6 +328,7 @@ export function PainelProcesso({
               <p className="px-1 pt-4 text-sm text-tinta-2">A equipe aparece quando houver conexão.</p>
             ),
           },
+          ...subtelasAnexos,
         }}
       >
         <fieldset disabled={!podeEditar} className="contents">
@@ -456,6 +459,8 @@ export function PainelProcesso({
             <LinhaTextoRico rotulo="Observações" valor={dados.observacoes} aoMudar={v => mudar('observacoes', v || null)} />
           </Grupo>
 
+          {grupoAnexos}
+
           {/* Acompanhamento: só quando o processo já virou trabalho (em execução ou
               automatizado). Se já tiver algo preenchido, aparece sempre, para não esconder dado. */}
           {(emExecucao(dados.status) || dados.em_risco || dados.ganho_validado_pct != null || dados.responsaveis.length > 0) && (
@@ -504,7 +509,7 @@ export function PainelProcesso({
           rotuloConfirmar="Excluir processo"
           aoConfirmar={async () => {
             aoFechar();
-            await comIndicador(() => excluir('processos', processo.id));
+            await comIndicador(() => excluirProcesso(processo.id));
           }}
         />
       )}

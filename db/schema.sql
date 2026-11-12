@@ -261,6 +261,29 @@ CREATE INDEX IF NOT EXISTS idx_cfg_sync ON configuracoes (organizacao_id, sincro
 CREATE INDEX IF NOT EXISTS idx_cli_sync ON clientes (organizacao_id, sincronizado_em);
 CREATE INDEX IF NOT EXISTS idx_ses_sync ON sessoes (organizacao_id, sincronizado_em);
 CREATE INDEX IF NOT EXISTS idx_areas_sync ON areas (organizacao_id, sincronizado_em);
+-- Anexos do processo: foto (data URL reduzida no aparelho) ou link, com descrição breve.
+CREATE TABLE IF NOT EXISTS anexos (
+  id              TEXT PRIMARY KEY,
+  organizacao_id  TEXT NOT NULL,
+  criado_por      TEXT NOT NULL,
+  processo_id     TEXT NOT NULL REFERENCES processos(id),
+  sessao_id       TEXT NOT NULL,
+  cliente_id      TEXT NOT NULL,
+  tipo            TEXT NOT NULL DEFAULT 'foto' CHECK (tipo IN ('foto', 'link')),
+  url             TEXT,
+  imagem          TEXT,
+  descricao       TEXT,
+  ordem           INTEGER NOT NULL DEFAULT 0,
+  criado_em       INTEGER NOT NULL,
+  atualizado_em   INTEGER NOT NULL,
+  excluido        INTEGER NOT NULL DEFAULT 0,
+  campos_ts       TEXT NOT NULL DEFAULT '{}',
+  campos_sync     TEXT NOT NULL DEFAULT '{}',
+  sincronizado_em INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_anexos_processo ON anexos (processo_id);
+CREATE INDEX IF NOT EXISTS idx_anexos_sync ON anexos (organizacao_id, sincronizado_em);
+
 CREATE INDEX IF NOT EXISTS idx_proc_sync ON processos (organizacao_id, sincronizado_em);
 CREATE INDEX IF NOT EXISTS idx_blocos_sync ON roteiro_blocos (organizacao_id, sincronizado_em);
 CREATE INDEX IF NOT EXISTS idx_perg_sync ON roteiro_perguntas (organizacao_id, sincronizado_em);

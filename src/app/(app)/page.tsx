@@ -29,7 +29,7 @@ import {
 import { horas, numero, percentual } from '@/lib/formato';
 import { useCarteira } from '@/lib/local/carteira';
 import { comIndicador } from '@/lib/local/gravacao';
-import { excluir, excluirCliente } from '@/lib/local/repo';
+import { excluirCliente, excluirProcesso } from '@/lib/local/repo';
 import { montarMapa } from '@/lib/mapa';
 import { rotas } from '@/lib/rotas';
 import { cn } from '@/lib/cn';
@@ -387,7 +387,7 @@ export default function MapaDeProcessos() {
         titulo={`Excluir ${excluirProc?.codigo}?`}
         texto={`"${excluirProc?.titulo || 'Sem título'}" sai do mapa e do ROI, em todos os aparelhos. O código não é reaproveitado.`}
         rotuloConfirmar="Excluir processo"
-        aoConfirmar={() => excluirProc && comIndicador(() => excluir('processos', excluirProc.id))}
+        aoConfirmar={() => excluirProc && comIndicador(() => excluirProcesso(excluirProc.id))}
       />
       <Confirmar
         aberto={!!clienteExcluir}

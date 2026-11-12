@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   Bell,
   Building2,
+  Camera,
   CalendarDays,
   Check,
   ChevronDown,
@@ -129,6 +130,7 @@ export const IconCheckCirculo = traco(CircleCheck, 'IconCheckCirculo', 'pula');
 export const IconSair = traco(LogOut, 'IconSair', 'avanca');
 /** Upload de logo. */
 export const IconImagem = traco(ImagePlus, 'IconImagem', 'pula');
+export const IconCamera = traco(Camera, 'IconCamera', 'pula');
 /** Integração (conectar). */
 export const IconLink = traco(Link2, 'IconLink', 'gira');
 export const IconExterno = traco(ArrowUpRight, 'IconExterno', 'diagonal');

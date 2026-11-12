@@ -12,6 +12,7 @@ export const TABELAS = [
   'roteiro_blocos',
   'roteiro_perguntas',
   'capturas',
+  'anexos',
 ] as const;
 export type TabelaSyncNome = (typeof TABELAS)[number];
 
@@ -130,6 +131,16 @@ export const COLUNAS: Record<TabelaSyncNome, Record<string, Tipo>> = {
     processo_gerado_id: 'texto',
     status: 'texto',
   },
+  anexos: {
+    processo_id: 'texto',
+    sessao_id: 'texto',
+    cliente_id: 'texto',
+    tipo: 'texto',
+    url: 'texto',
+    imagem: 'texto',
+    descricao: 'texto',
+    ordem: 'numero',
+  },
 };
 
 /** Campos de controle que também participam da mescla por campo. */
@@ -153,6 +164,10 @@ export type RegistroWire = z.infer<typeof registroWire>;
 export const pedidoSync = z.object({
   /** Cursor do servidor: o maior sincronizado_em que o aparelho já recebeu. */
   desde: z.number().min(0),
+  /** Próxima página de uma resposta com `mais`: usa o cursor exato (sem a sobreposição). */
+  continuacao: z.boolean().optional(),
+  /** Anexos que o aparelho recebeu sem o arquivo e não tem: o servidor manda inteiros. */
+  buscar: z.array(z.string().min(1).max(64)).max(500).optional(),
   mudancas: z.object(
     Object.fromEntries(TABELAS.map(t => [t, z.array(registroWire).max(500).default([])])) as Record<
       TabelaSyncNome,
@@ -175,7 +190,23 @@ export interface RespostaSync {
   conflitos: ConflitoSync[];
   /** Registros recusados (outra organização, ou usuário só de leitura). */
   recusados: { tabela: TabelaSyncNome; id: string }[];
+  /** Ainda há anexos a receber: o aparelho pede a próxima página com `continuacao`. */
+  mais?: boolean;
 }
+
+/**
+ * Tamanho máximo (bytes do JSON) de um pedido e de uma página de anexos. A Vercel
+ * aceita até 4,5 MB por pedido e por resposta; fotos são o que pesa.
+ */
+export const ORCAMENTO_BYTES = 2_500_000;
+/** Tabelas que vêm em páginas (as que guardam arquivo). */
+export const TABELAS_PAGINADAS: readonly TabelaSyncNome[] = ['anexos'];
+/**
+ * Coluna pesada de cada tabela paginada. Na janela de sobreposição do cursor
+ * (registros que o aparelho quase certamente já tem) ela vem sem o valor e com
+ * `_sem_arquivo`, para a mesma foto não descer de novo a cada sincronização.
+ */
+export const COLUNA_ARQUIVO: Partial<Record<TabelaSyncNome, string>> = { anexos: 'imagem' };
 
 /** Janela de sobreposição do cursor: puxa um pouco antes para não perder escrita concorrente. */
 export const SOBREPOSICAO_MS = 5_000;
