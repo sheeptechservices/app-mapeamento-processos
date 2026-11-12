@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { PainelAjustes } from '@/components/ajustes/painel-ajustes';
+import { AvisoVersao } from '@/components/aviso-versao';
 import { SeguirTemaDoSistema } from '@/components/tema';
 import { Topo } from './topo';
 
@@ -21,6 +22,7 @@ export function Casca({ children }: { children: ReactNode }) {
         </div>
       </div>
       <PainelAjustes aberto={ajustes} aoFechar={() => setAjustes(false)} />
+      <AvisoVersao />
     </>
   );
 }

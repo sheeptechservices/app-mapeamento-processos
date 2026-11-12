@@ -2,6 +2,7 @@
 
 import { DropdownMenu } from 'radix-ui';
 import { IconAjustes, IconSair } from '@/components/icons';
+import { BotaoAtualizarVersao } from '@/components/aviso-versao';
 import { IndicadorGravacao } from '@/components/indicador-gravacao';
 import { useSessao } from '@/components/sessao';
 import { Avatar } from '@/components/ui/avatar';
@@ -64,6 +65,7 @@ export function Topo({ aoAbrirAjustes }: { aoAbrirAjustes: () => void }) {
         <LogoSheep altura={36} />
       </span>
       <div className="ml-auto flex items-center gap-2">
+        <BotaoAtualizarVersao />
         <GrupoIcones>
           <IndicadorGravacao compacto />
           <BotaoIcone rotulo="Ajustes" onClick={aoAbrirAjustes}>

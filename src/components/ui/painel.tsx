@@ -10,6 +10,7 @@
 // - Sub-telas deslizam para o lado. São declaradas pelo pai a cada render
 //   (`subtelas`), então uma lista de escolha aberta mostra sempre o valor atual.
 // - Rodapé fixo com dois botões em pílula.
+import { tocouNoAvisoDeVersao } from '@/components/aviso-versao';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Dialog } from 'radix-ui';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -115,6 +116,8 @@ export function Painel({
               asChild
               forceMount
               aria-describedby={descricao ? undefined : undefined}
+              // Tocar no aviso de versão nova não fecha o painel (quem está preenchendo segue).
+              onInteractOutside={tocouNoAvisoDeVersao}
               onEscapeKeyDown={e => {
                 // Esc numa sub-tela volta uma; na principal, fecha.
                 if (pilha.length) {
@@ -183,7 +186,9 @@ export function Painel({
                   </div>
                   {/* Sub-tela sem rodapé próprio mantém o da tela principal (Limpar / Mostrar N). */}
                   {(atual?.rodape ?? rodape) && (
-                    <footer className="shrink-0 border-t border-borda bg-fundo px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">{atual?.rodape ?? rodape}</footer>
+                    <footer className="shrink-0 border-t border-borda bg-fundo px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">
+                      {atual?.rodape ?? rodape}
+                    </footer>
                   )}
                 </ContextoPainel.Provider>
               </motion.div>

@@ -13,6 +13,7 @@ import {
   IconFiltros,
   IconRecolher,
 } from '@/components/icons';
+import { tocouNoAvisoDeVersao } from '@/components/aviso-versao';
 import { BotaoAgrupar, GruposProcessos } from '@/components/processos/agrupar-processos';
 import { BarraEtapas, GanhoPorSetor } from '@/components/processos/graficos-sessao';
 import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components/processos/lista-processos';
@@ -159,6 +160,7 @@ export function PaginaSessao({
                 asChild
                 forceMount
                 aria-describedby={undefined}
+                onInteractOutside={tocouNoAvisoDeVersao}
                 // Foco no próprio quadro (e não no primeiro botão): sem anel de foco solto ao abrir.
                 onOpenAutoFocus={e => {
                   e.preventDefault();

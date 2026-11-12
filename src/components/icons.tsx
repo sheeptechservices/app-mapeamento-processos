@@ -26,6 +26,7 @@ import {
   HardDrive,
   ImagePlus,
   Layers,
+  RefreshCw,
   Link2,
   LogOut,
   Mail,
@@ -121,6 +122,7 @@ export const IconFiltros = traco(SlidersHorizontal, 'IconFiltros', 'desliza');
 /** Ordenação. */
 export const IconOrdenar = traco(ArrowDownWideNarrow, 'IconOrdenar', 'desce');
 export const IconAgrupar = traco(Layers, 'IconAgrupar', 'pula');
+export const IconAtualizar = traco(RefreshCw, 'IconAtualizar', 'gira');
 export const IconMais = traco(Ellipsis, 'IconMais', 'pula');
 export const IconCheck = traco(Check, 'IconCheck', 'pula');
 export const IconCheckCirculo = traco(CircleCheck, 'IconCheckCirculo', 'pula');

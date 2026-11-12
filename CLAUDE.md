@@ -32,6 +32,10 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   em tela cheia. Abre por push (o voltar do celular fecha o quadro). Com busca ou filtro no mapa, os processos
   achados aparecem sob o cartão e a busca segue para a página da sessão. "Em risco" é filtro.
   Cores das etapas nos gráficos: rampa ordinal `--etapa-1..5` (validada com o validador de paletas).
+- **Atualização sem atrapalhar** (`components/aviso-versao.tsx`, `lib/versao.ts`, `/api/versao`): o app compara a
+  sua versão (`NEXT_PUBLIC_VERSAO`) com a do ar a cada minuto e ao voltar ao primeiro plano. Versão nova mostra um
+  aviso no canto: "Depois" recolhe num botão Atualizar no topo; "Atualizar" pede `Confirmar` (recarregar fecha o que
+  estiver aberto). Diálogos novos passam `onInteractOutside={tocouNoAvisoDeVersao}` para não fechar ao tocar no aviso.
 - **Sobreposição** (`src/components/ui/painel.tsx` + `linhas.tsx`): todo formulário e filtro é um `Painel`
   (lateral 440px / bottom sheet) com `Grupo` e `Linha*`; sub-telas declaradas em `subtelas` (sempre atuais).
   No celular, folha de baixo fecha ao arrastar para baixo (`useArrastarParaFechar` em `ui/arrastar-fechar.ts`;
