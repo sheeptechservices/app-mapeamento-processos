@@ -6,6 +6,7 @@ import { z } from 'zod';
 export const TABELAS = [
   'configuracoes',
   'clientes',
+  'glossario',
   'sessoes',
   'areas',
   'processos',
@@ -58,6 +59,11 @@ export const COLUNAS: Record<TabelaSyncNome, Record<string, Tipo>> = {
     socios: 'texto',
     observacoes: 'texto',
     contexto_especifico: 'texto',
+  },
+  glossario: {
+    cliente_id: 'texto',
+    termo: 'texto',
+    definicao: 'texto',
   },
   sessoes: {
     cliente_id: 'texto',

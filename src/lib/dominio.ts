@@ -63,6 +63,15 @@ export interface Cliente extends Registro {
   contexto_especifico: string | null;
 }
 
+// ─── Glossário do cliente ─────────────────────────────────────────────────
+
+/** Termo do vocabulário do cliente (sigla, nome de sistema, jeito de chamar algo) e o que ele quer dizer. */
+export interface TermoGlossario extends Registro {
+  cliente_id: string;
+  termo: string;
+  definicao: string | null;
+}
+
 // ─── Sessão de mapeamento ─────────────────────────────────────────────────
 
 export type StatusSessao = 'em_andamento' | 'em_revisao' | 'validada';

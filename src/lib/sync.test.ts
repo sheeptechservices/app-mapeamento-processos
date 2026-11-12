@@ -14,9 +14,11 @@ import {
   criarCliente,
   criarProcesso,
   criarSessao,
+  criarTermo,
   definirAutor,
   excluir,
   excluirAnexo,
+  excluirCliente,
   excluirProcesso,
 } from './local/repo';
 import { rodadaSync, type Transporte } from './local/sync';
@@ -175,6 +177,32 @@ describe('sincronização entre aparelhos', () => {
     await sync(b);
     const restantes = await b.db.anexos_partes.where('anexo_id').equals(anexo.id).toArray();
     expect(restantes.every(r => r.excluido === 1 && !r.dados)).toBe(true);
+  });
+
+  it('glossário do cliente sincroniza e sai junto quando o cliente é excluído', async () => {
+    const a = aparelho(ORG);
+    const b = aparelho(ORG_B);
+    const lev = await em(a, () => clienteComSessao('Laticínio'));
+    const termo = await em(a, () => criarTermo(lev.cliente.id, ' Romaneio ', 'Lista da carga de cada caminhão'));
+    passo();
+    await sync(a);
+    passo();
+    await sync(b);
+    expect(await b.db.glossario.get(termo.id)).toMatchObject({ termo: 'Romaneio', definicao: 'Lista da carga de cada caminhão', excluido: 0 });
+
+    passo();
+    await em(b, () => atualizar('glossario', termo.id, { definicao: 'Lista da carga e da rota de cada caminhão' }));
+    await sync(b);
+    passo();
+    await sync(a);
+    expect(await a.db.glossario.get(termo.id)).toMatchObject({ definicao: 'Lista da carga e da rota de cada caminhão' });
+
+    passo();
+    await em(a, () => excluirCliente(lev.cliente.id));
+    await sync(a);
+    passo();
+    await sync(b);
+    expect(await b.db.glossario.get(termo.id)).toMatchObject({ excluido: 1 });
   });
 
   it('excluir o processo leva os anexos junto, nos dois aparelhos', async () => {

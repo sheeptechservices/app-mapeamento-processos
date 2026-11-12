@@ -18,6 +18,7 @@ import type {
   RoteiroBloco,
   RoteiroPergunta,
   Sessao,
+  TermoGlossario,
 } from '@/lib/dominio';
 import { TABELAS, type TabelaSyncNome } from '@/lib/sync-protocolo';
 
@@ -40,6 +41,7 @@ export class BancoLocal extends Dexie {
   capturas!: EntityTable<Captura, 'id'>;
   anexos!: EntityTable<Anexo, 'id'>;
   anexos_partes!: EntityTable<AnexoParte, 'id'>;
+  glossario!: EntityTable<TermoGlossario, 'id'>;
   meta!: Table<Meta, string>;
 
   constructor(nome = 'sheep-mapeamento') {
@@ -59,6 +61,8 @@ export class BancoLocal extends Dexie {
     this.version(2).stores({ anexos: 'id, processo_id, sessao_id, cliente_id, _pendente' });
     // Partes do conteúdo de anexos do tipo arquivo (PDF, planilha, documento).
     this.version(3).stores({ anexos_partes: 'id, anexo_id, processo_id, sessao_id, cliente_id, _pendente' });
+    // Glossário do cliente.
+    this.version(4).stores({ glossario: 'id, cliente_id, _pendente' });
   }
 
   tabela(nome: TabelaSync) {

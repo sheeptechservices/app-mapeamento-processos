@@ -15,6 +15,7 @@ import {
   ListaEscolha,
 } from '@/components/ui/linhas';
 import { Painel, RodapePainel } from '@/components/ui/painel';
+import { useGlossarioCliente } from '@/components/clientes/glossario';
 import { LinhaTextoRico } from '@/components/ui/texto-rico';
 import { ESTAGIOS_CLIENTE, rotuloDe, SEGMENTOS, type Cliente } from '@/lib/dominio';
 import { mascaraCnpj, mascaraTelefone, reais } from '@/lib/formato';
@@ -83,6 +84,8 @@ export function PainelCliente({
     aoCriar?.(novo);
   };
 
+  // Glossário do cliente (termos e definições), com as sub-telas de novo e editar termo.
+  const { grupo: grupoGlossario, subtelas: subtelasGlossario } = useGlossarioCliente(cliente?.id ?? null, podeEditar);
   const rodape = editando ? (
     <div className="flex gap-2">
       {podeEditar && (
@@ -121,6 +124,7 @@ export function PainelCliente({
         titulo={editando ? 'Cliente' : 'Novo cliente'}
         rodape={rodape}
         subtelas={{
+          ...subtelasGlossario,
           segmento: {
             titulo: 'Segmento',
             conteudo: (
@@ -155,7 +159,13 @@ export function PainelCliente({
               <LinhaLogo nome={dados.nome} valor={dados.logo} aoMudar={v => mudar('logo', v)} />
             </Grupo>
             <Grupo titulo="Identificação">
-              <LinhaTexto rotulo="Nome" valor={dados.nome} aoMudar={v => mudar('nome', v)} placeholder="Obrigatório" autoFocus={!editando} />
+              <LinhaTexto
+                rotulo="Nome"
+                valor={dados.nome}
+                aoMudar={v => mudar('nome', v)}
+                placeholder="Obrigatório"
+                autoFocus={!editando}
+              />
               <LinhaMascara rotulo="CNPJ" valor={dados.cnpj} aoMudar={v => mudar('cnpj', v)} mascara={mascaraCnpj} />
               <Linha rotulo="Segmento" valor={dados.segmento} subtela="segmento" />
               <LinhaTexto rotulo="Cidade" valor={dados.cidade} aoMudar={v => mudar('cidade', v || null)} placeholder="Ex.: Maringá/PR" />
@@ -163,13 +173,29 @@ export function PainelCliente({
             </Grupo>
             <Grupo titulo="Empresa">
               <LinhaTexto rotulo="Razão social" valor={dados.razao_social} aoMudar={v => mudar('razao_social', v || null)} />
-              <LinhaTexto rotulo="Atividade" valor={dados.atividade} aoMudar={v => mudar('atividade', v || null)} placeholder="CNAE principal" />
+              <LinhaTexto
+                rotulo="Atividade"
+                valor={dados.atividade}
+                aoMudar={v => mudar('atividade', v || null)}
+                placeholder="CNAE principal"
+              />
               <LinhaTexto rotulo="Porte" valor={dados.porte} aoMudar={v => mudar('porte', v || null)} placeholder="Ex.: ME, Simples" />
               <LinhaData rotulo="Abertura" limpavel valor={dados.abertura ?? ''} aoMudar={v => mudar('abertura', v || null)} />
-              <LinhaTextoLongo rotulo="Endereço" valor={dados.endereco} aoMudar={v => mudar('endereco', v || null)} placeholder="Rua, número, bairro, CEP" />
+              <LinhaTextoLongo
+                rotulo="Endereço"
+                valor={dados.endereco}
+                aoMudar={v => mudar('endereco', v || null)}
+                placeholder="Rua, número, bairro, CEP"
+              />
             </Grupo>
             <Grupo titulo="Canais da empresa">
-              <LinhaMascara rotulo="Telefone" modo="tel" valor={dados.telefone} aoMudar={v => mudar('telefone', v)} mascara={mascaraTelefone} />
+              <LinhaMascara
+                rotulo="Telefone"
+                modo="tel"
+                valor={dados.telefone}
+                aoMudar={v => mudar('telefone', v)}
+                mascara={mascaraTelefone}
+              />
               <LinhaTexto rotulo="E-mail" tipo="email" valor={dados.email} aoMudar={v => mudar('email', v || null)} />
               <LinhaTexto rotulo="Site" valor={dados.site} aoMudar={v => mudar('site', v || null)} placeholder="empresa.com.br" />
               <LinhaTexto rotulo="Instagram" valor={dados.instagram} aoMudar={v => mudar('instagram', v || null)} placeholder="@perfil" />
@@ -216,6 +242,7 @@ export function PainelCliente({
                 aoMudar={v => mudar('contexto_especifico', v || null)}
               />
             </Grupo>
+            {grupoGlossario}
           </fieldset>
         )}
       </Painel>

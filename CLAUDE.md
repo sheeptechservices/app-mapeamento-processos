@@ -68,6 +68,11 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   tabela `anexos_partes` (paginada na sincronização), montados num Blob para abrir ou baixar; e links. Cada um
   com descrição. Grupo logo depois de Observações; processo novo precisa ser salvo antes. `excluirProcesso` leva os
   anexos junto (sessão e cliente também); `excluirAnexo` solta o conteúdo pesado.
+- **Glossário do cliente** (`components/clientes/glossario.tsx`, tabela `glossario`): termos da empresa e definições,
+  por cliente (vale em todas as sessões). Aparece no cadastro do cliente e pelo botão Glossário no topo do quadro da
+  sessão (`PainelGlossario`). Sai junto quando o cliente é excluído.
+- **Tabela nova sem `db:migrar`**: `servidor/garantir-tabelas.ts` cria, na primeira sincronização de cada instância,
+  as tabelas novas (IF NOT EXISTS, igual ao `db/schema.sql`). Coluna nova continua pelo `db:migrar`.
 - **ROI** (`src/lib/roi.ts`): custo da hora herdado (processo, cliente, padrão), redução e horizonte das
   Configurações, ganho validado, agregados por área/cliente/carteira (`consolidar`, `agregarPor`). Campo vazio
   é "não informado", nunca zero. Mudou a conta, mudou o teste.

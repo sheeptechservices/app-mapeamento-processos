@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowUpRight,
   Bell,
+  BookOpen,
   Building2,
   Camera,
   Download,
@@ -135,6 +136,7 @@ export const IconSair = traco(LogOut, 'IconSair', 'avanca');
 /** Upload de logo. */
 export const IconImagem = traco(ImagePlus, 'IconImagem', 'pula');
 export const IconCamera = traco(Camera, 'IconCamera', 'pula');
+export const IconGlossario = traco(BookOpen, 'IconGlossario', 'pula');
 export const IconArquivo = traco(FileText, 'IconArquivo', 'pula');
 export const IconPlanilha = traco(FileSpreadsheet, 'IconPlanilha', 'pula');
 export const IconAnexo = traco(Paperclip, 'IconAnexo', 'rabisca');

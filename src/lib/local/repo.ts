@@ -17,6 +17,7 @@ import {
   type RoteiroBloco,
   type RoteiroPergunta,
   type Sessao,
+  type TermoGlossario,
 } from '@/lib/dominio';
 import { hojeISO } from '@/lib/formato';
 import { ROTEIRO_PADRAO } from '@/lib/roteiro-padrao';
@@ -79,6 +80,7 @@ type TipoDe<N extends Tabela> = {
   capturas: Captura;
   anexos: Anexo;
   anexos_partes: AnexoParte;
+  glossario: TermoGlossario;
 }[N];
 
 async function inserir<T extends Registro>(tabela: Tabela, reg: T) {
@@ -221,6 +223,7 @@ export async function excluirCliente(id: string) {
   await excluirFilhas('processos', 'cliente_id', id);
   await excluirFilhas('anexos', 'cliente_id', id);
   await excluirFilhas('anexos_partes', 'cliente_id', id);
+  await excluirFilhas('glossario', 'cliente_id', id);
   await excluir('clientes', id);
 }
 
@@ -402,6 +405,12 @@ export async function excluirAnexo(id: string) {
   const partes = await banco().anexos_partes.where('anexo_id').equals(id).primaryKeys();
   await Promise.all(partes.map(p => atualizar('anexos_partes', p, { excluido: 1, dados: null } as never)));
   await atualizar('anexos', id, { excluido: 1, imagem: null } as never);
+}
+
+// ─── Glossário do cliente ─────────────────────────────────────────────────
+
+export async function criarTermo(cliente_id: string, termo: string, definicao: string | null) {
+  return inserir('glossario', novoRegistro<TermoGlossario>({ cliente_id, termo: termo.trim(), definicao: definicao?.trim() || null }));
 }
 
 // ─── Roteiro ──────────────────────────────────────────────────────────────

@@ -11,9 +11,11 @@ import {
   IconExpandir,
   IconFechar,
   IconFiltros,
+  IconGlossario,
   IconRecolher,
 } from '@/components/icons';
 import { tocouNoAvisoDeVersao } from '@/components/aviso-versao';
+import { PainelGlossario } from '@/components/clientes/glossario';
 import { BotaoAgrupar, GruposProcessos } from '@/components/processos/agrupar-processos';
 import { Colunas, Donut, Pirulito, RAMPA_AZUL } from '@/components/processos/graficos-perfil';
 import { BarrasContagem } from '@/components/processos/graficos-sessao';
@@ -103,6 +105,7 @@ export function PaginaSessao({
 }) {
   const [filtros, setFiltros] = useState<FiltrosProcesso>(filtrosIniciais ?? FILTROS_VAZIOS);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [glossarioAberto, setGlossarioAberto] = useState(false);
   // O quadro sempre abre reduzido, mesmo que tenha sido fechado expandido.
   const [expandido, setExpandido] = useState(false);
   const [abertoAntes, setAbertoAntes] = useState(aberto);
@@ -252,28 +255,40 @@ export function PaginaSessao({
                             )}
                           </div>
                         </div>
-                        {podeEditar && (
-                          <div className="flex shrink-0 items-center gap-2">
-                            <button
-                              type="button"
-                              title="Editar sessão"
-                              onClick={() => acoes.editarSessao(sessao)}
-                              className={cn(estiloBotao({ variante: 'secundario' }), '@max-xl:w-[var(--toque)] @max-xl:px-0')}
-                            >
-                              <IconEditar size={17} />
-                              <span className="@max-xl:sr-only">Editar sessão</span>
-                            </button>
-                            <button
-                              type="button"
-                              title="Novo processo"
-                              onClick={() => acoes.novoProcesso(sessao)}
-                              className={cn(estiloBotao({ variante: 'primario' }), '@max-xl:w-[var(--toque)] @max-xl:px-0')}
-                            >
-                              <IconAdicionar size={18} />
-                              <span className="@max-xl:sr-only">Novo processo</span>
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex shrink-0 items-center gap-2">
+                          {/* Glossário do cliente: os termos da empresa à mão durante o mapeamento. */}
+                          <button
+                            type="button"
+                            title="Glossário do cliente"
+                            onClick={() => setGlossarioAberto(true)}
+                            className={cn(estiloBotao({ variante: 'secundario' }), '@max-xl:w-[var(--toque)] @max-xl:px-0')}
+                          >
+                            <IconGlossario size={17} />
+                            <span className="@max-xl:sr-only">Glossário</span>
+                          </button>
+                          {podeEditar && (
+                            <>
+                              <button
+                                type="button"
+                                title="Editar sessão"
+                                onClick={() => acoes.editarSessao(sessao)}
+                                className={cn(estiloBotao({ variante: 'secundario' }), '@max-xl:w-[var(--toque)] @max-xl:px-0')}
+                              >
+                                <IconEditar size={17} />
+                                <span className="@max-xl:sr-only">Editar sessão</span>
+                              </button>
+                              <button
+                                type="button"
+                                title="Novo processo"
+                                onClick={() => acoes.novoProcesso(sessao)}
+                                className={cn(estiloBotao({ variante: 'primario' }), '@max-xl:w-[var(--toque)] @max-xl:px-0')}
+                              >
+                                <IconAdicionar size={18} />
+                                <span className="@max-xl:sr-only">Novo processo</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       {/* Indicadores */}
@@ -504,6 +519,13 @@ export function PaginaSessao({
         </AnimatePresence>
       </Dialog.Root>
 
+      <PainelGlossario
+        aberto={glossarioAberto}
+        aoFechar={() => setGlossarioAberto(false)}
+        clienteId={sessao.cliente_id}
+        nomeCliente={cliente?.nome}
+        podeEditar={podeEditar}
+      />
       <PainelFiltros
         aberto={filtrosAbertos}
         aoFechar={() => setFiltrosAbertos(false)}

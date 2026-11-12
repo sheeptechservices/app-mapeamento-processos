@@ -1,5 +1,6 @@
 import { ZodError } from 'zod';
 import { sessaoAtual } from '@/lib/servidor/sessao';
+import { garantirTabelas } from '@/lib/servidor/garantir-tabelas';
 import { processarSync } from '@/lib/servidor/sync';
 import { turso } from '@/lib/servidor/turso';
 import { papelAtual } from '@/lib/servidor/usuarios';
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
 
   const corpo = await req.json().catch(() => null);
   try {
+    await garantirTabelas(turso());
     const resposta = await processarSync(turso(), { org: sessao.org, uid: sessao.uid, papel }, corpo);
     return Response.json(resposta);
   } catch (e) {

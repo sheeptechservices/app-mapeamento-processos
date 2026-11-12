@@ -90,6 +90,24 @@ CREATE TABLE IF NOT EXISTS clientes (
   sincronizado_em    INTEGER NOT NULL DEFAULT 0
 );
 
+-- Glossário do cliente: termos do vocabulário da empresa e o que cada um quer dizer.
+CREATE TABLE IF NOT EXISTS glossario (
+  id              TEXT PRIMARY KEY,
+  organizacao_id  TEXT NOT NULL,
+  criado_por      TEXT NOT NULL,
+  cliente_id      TEXT NOT NULL REFERENCES clientes(id),
+  termo           TEXT NOT NULL DEFAULT '',
+  definicao       TEXT,
+  criado_em       INTEGER NOT NULL,
+  atualizado_em   INTEGER NOT NULL,
+  excluido        INTEGER NOT NULL DEFAULT 0,
+  campos_ts       TEXT NOT NULL DEFAULT '{}',
+  campos_sync     TEXT NOT NULL DEFAULT '{}',
+  sincronizado_em INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_glossario_cliente ON glossario (cliente_id);
+CREATE INDEX IF NOT EXISTS idx_glossario_sync ON glossario (organizacao_id, sincronizado_em);
+
 CREATE TABLE IF NOT EXISTS sessoes (
   id                     TEXT PRIMARY KEY,
   organizacao_id         TEXT NOT NULL REFERENCES organizacoes(id),

@@ -114,3 +114,13 @@ export function usePartesNoAparelho(anexoId: string | null | undefined) {
     return (await banco().anexos_partes.where('anexo_id').equals(anexoId).toArray()).filter(p => !p.excluido && p.dados).length;
   }, [anexoId]);
 }
+
+/** Glossário do cliente em ordem alfabética. */
+export function useGlossario(clienteId: string | null | undefined) {
+  return useLiveQuery(async () => {
+    if (!clienteId) return [];
+    return vivos(await banco().glossario.where('cliente_id').equals(clienteId).toArray()).sort((a, b) =>
+      a.termo.localeCompare(b.termo, 'pt-BR', { sensitivity: 'base' }),
+    );
+  }, [clienteId]);
+}
