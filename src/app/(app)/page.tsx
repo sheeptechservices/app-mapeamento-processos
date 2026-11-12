@@ -110,7 +110,9 @@ export default function MapaDeProcessos() {
     const sessoesAchadas = new Set(termo ? carteira.sessoes.filter(s => semAcento(s.titulo ?? '').includes(termo)).map(s => s.id) : []);
     const porFiltro = filtrarProcessos(carteira.processos, { ...filtros, busca: '' }, 'todos', info);
     const lista = termo
-      ? porFiltro.filter(p => casaBusca(p, filtros.busca) || clientesAchados.has(p.cliente_id) || sessoesAchadas.has(p.sessao_id))
+      ? porFiltro.filter(
+          p => casaBusca(p, filtros.busca, setorDe(p)) || clientesAchados.has(p.cliente_id) || sessoesAchadas.has(p.sessao_id),
+        )
       : porFiltro;
     return {
       visiveis: lista,
@@ -253,7 +255,7 @@ export default function MapaDeProcessos() {
               <IconBusca size={18} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-tinta-3" />
               <input
                 className="campo !rounded-pilula !pl-11"
-                placeholder="Buscar cliente, sessão, processo, ID ou gargalo"
+                placeholder="Buscar cliente, sessão, processo, setor ou descrição"
                 value={filtros.busca}
                 onChange={e => setFiltros(f => ({ ...f, busca: e.target.value }))}
                 aria-label="Buscar no mapa"

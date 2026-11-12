@@ -45,17 +45,22 @@ export function daAba(p: Processo, aba: AbaFiltro) {
   return true;
 }
 
-/** Busca por nome, ID (PRC-001), gargalo ou observações, sem diferença de acento ou maiúscula. */
-export function casaBusca(p: Processo, busca: string) {
+/**
+ * Busca no título, no setor e na descrição (e também no ID PRC-001, gargalo e
+ * observações), sem diferença de acento ou maiúscula.
+ */
+export function casaBusca(p: Processo, busca: string, setor?: string | null) {
   const t = semAcento(busca.trim());
   if (!t) return true;
-  return semAcento(`${p.titulo} ${p.codigo} ${p.gargalos ?? ''} ${p.observacoes ?? ''}`).includes(t);
+  return semAcento(
+    [p.titulo, setor, p.descricao, p.codigo, p.gargalos, p.observacoes].filter(Boolean).join(' ').replace(/\s+/g, ' '),
+  ).includes(t);
 }
 
 export function filtrarProcessos(processos: Processo[], f: FiltrosProcesso, aba: AbaFiltro, info: InfoProcesso): Processo[] {
   const setores = new Set(f.setores.map(semAcento));
   const lista = processos.filter(p => {
-    if (!daAba(p, aba) || !casaBusca(p, f.busca)) return false;
+    if (!daAba(p, aba) || !casaBusca(p, f.busca, info.setor(p))) return false;
     if (setores.size) {
       const s = info.setor(p);
       if (!s || !setores.has(semAcento(s))) return false;

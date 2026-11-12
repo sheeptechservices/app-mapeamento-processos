@@ -384,7 +384,7 @@ export function PaginaSessao({
                           <IconBusca size={18} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-tinta-3" />
                           <input
                             className="campo !rounded-pilula !pl-11"
-                            placeholder="Buscar nesta sessão"
+                            placeholder="Buscar por título, setor ou descrição"
                             value={filtros.busca}
                             onChange={e => setFiltros(f => ({ ...f, busca: e.target.value }))}
                             aria-label="Buscar processos nesta sessão"

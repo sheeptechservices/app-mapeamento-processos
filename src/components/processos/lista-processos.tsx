@@ -128,7 +128,7 @@ export function LinhaProcesso({
           <button
             type="button"
             onClick={() => acoes.abrirProcesso(p)}
-            className="foco block max-w-full truncate text-left text-[15px] font-medium after:absolute after:inset-0 after:content-[''] @max-md:line-clamp-2 @max-md:whitespace-normal"
+            className="foco block max-w-full truncate text-left text-[15px] font-medium after:absolute after:inset-0 after:content-['']"
           >
             {p.titulo || 'Sem título'}
           </button>

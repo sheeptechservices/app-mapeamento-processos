@@ -32,7 +32,15 @@ const lista = [
     em_risco: true,
     ganho: 2940,
   }),
-  proc({ titulo: 'Emissão de guias DAS', setor: 'Fiscal', status: 'em_analise', eisenhower: 2, origem_numero: 'estimativa', ganho: 653 }),
+  proc({
+    titulo: 'Emissão de guias DAS',
+    descricao: 'Gera a guia no PGDAS e manda pelo WhatsApp.',
+    setor: 'Fiscal',
+    status: 'em_analise',
+    eisenhower: 2,
+    origem_numero: 'estimativa',
+    ganho: 653,
+  }),
   proc({
     titulo: 'Fechamento da folha',
     setor: 'Departamento Pessoal',
@@ -77,11 +85,14 @@ describe('filtrarProcessos', () => {
     ]);
   });
 
-  it('busca por nome, ID, gargalo ou observações, sem acento e sem maiúscula', () => {
+  it('busca por título, setor, descrição, ID, gargalo ou observações, sem acento e sem maiúscula', () => {
     expect(titulos(filtrarProcessos(lista, f({ busca: 'conciliacao' }), 'todos', info))).toEqual(['Conciliação bancária']);
     expect(titulos(filtrarProcessos(lista, f({ busca: 'prc-002' }), 'todos', info))).toEqual(['Emissão de guias DAS']);
     expect(titulos(filtrarProcessos(lista, f({ busca: 'cfop' }), 'todos', info))).toEqual(['Importação de XML de notas']);
     expect(titulos(filtrarProcessos(lista, f({ busca: 'sicredi' }), 'todos', info))).toEqual(['Conciliação bancária']);
+    // Setor (vem de fora do processo) e descrição
+    expect(titulos(filtrarProcessos(lista, f({ busca: 'departamento' }), 'todos', info))).toEqual(['Fechamento da folha']);
+    expect(titulos(filtrarProcessos(lista, f({ busca: 'pgdas' }), 'todos', info))).toEqual(['Emissão de guias DAS']);
     expect(filtrarProcessos(lista, f({ busca: '   ' }), 'todos', info)).toHaveLength(5);
   });
 
