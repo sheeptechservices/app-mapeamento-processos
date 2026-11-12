@@ -13,6 +13,7 @@ import {
   IconFiltros,
   IconRecolher,
 } from '@/components/icons';
+import { BotaoAgrupar, GruposProcessos } from '@/components/processos/agrupar-processos';
 import { BarraEtapas, GanhoPorSetor } from '@/components/processos/graficos-sessao';
 import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components/processos/lista-processos';
 import { ORIGENS_FILTRO, PainelFiltros } from '@/components/processos/painel-filtros';
@@ -22,6 +23,7 @@ import { estiloBotao } from '@/components/ui/botao';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { Selo } from '@/components/ui/selo';
 import { PRIORIDADES, rotuloDe, rotuloStatus, STATUS_SESSAO, type Processo, type Sessao } from '@/lib/dominio';
+import { AGRUPAMENTOS, agruparProcessos, type Agrupamento } from '@/lib/agrupar';
 import { contarFiltros, etiquetasAtivas, FILTROS_VAZIOS, filtrarProcessos, type FiltrosProcesso } from '@/lib/filtros';
 import { horas, numero, percentual, reais, reaisCompacto } from '@/lib/formato';
 import type { Carteira } from '@/lib/local/carteira';
@@ -36,6 +38,17 @@ function assinarEstreito(aviso: () => void) {
   return () => m.removeEventListener('change', aviso);
 }
 const eEstreito = () => matchMedia(CONSULTA_ESTREITO).matches;
+
+/** O agrupamento escolhido fica lembrado no aparelho (é preferência de tela, não dado). */
+const CHAVE_AGRUPAR = 'sl_sessao_agrupar';
+function lerAgrupar(): Agrupamento {
+  try {
+    const v = localStorage.getItem(CHAVE_AGRUPAR);
+    return AGRUPAMENTOS.some(a => a.valor === v) ? (v as Agrupamento) : 'nenhum';
+  } catch {
+    return 'nenhum';
+  }
+}
 
 /** Indicador da sessão: rótulo, número que corre e uma linha de apoio. */
 function Kpi({ rotulo, valor, apoio, destaque }: { rotulo: string; valor: ReactNode; apoio?: ReactNode; destaque?: boolean }) {
@@ -91,6 +104,15 @@ export function PaginaSessao({
     if (aberto) setExpandido(false);
   }
   const alternarExpandido = () => setExpandido(e => !e);
+  const [agrupar, setAgrupar] = useState<Agrupamento>(lerAgrupar);
+  const mudarAgrupar = (v: Agrupamento) => {
+    setAgrupar(v);
+    try {
+      localStorage.setItem(CHAVE_AGRUPAR, v);
+    } catch {
+      /* sem armazenamento: vale nesta visita */
+    }
+  };
 
   const reduzido = useReducedMotion();
   // Celular: o quadro é folha de baixo e fecha ao arrastar para baixo.
@@ -102,6 +124,7 @@ export function PaginaSessao({
   const todos = carteira.processos.filter(p => p.sessao_id === sessao.id);
   const info = { setor: setorDe, ganhoMes: (p: Processo) => carteira.roiDe(p).ganho_mes };
   const visiveis = filtrarProcessos(todos, filtros, 'todos', info);
+  const grupos = agrupar === 'nenhum' ? null : agruparProcessos(visiveis, agrupar, { setor: setorDe, cfg: carteira.config });
   const roi = consolidar(todos, carteira.ctxDe);
   const etapas = contarEtapas(todos);
   const setores = agregarPor(todos, p => setorDe(p) ?? 'Sem setor', carteira.ctxDe).map(g => ({
@@ -307,6 +330,7 @@ export function PaginaSessao({
                             aria-label="Buscar processos nesta sessão"
                           />
                         </label>
+                        {todos.length > 0 && <BotaoAgrupar valor={agrupar} aoMudar={mudarAgrupar} />}
                         <button
                           type="button"
                           onClick={() => setFiltrosAbertos(true)}
@@ -380,13 +404,17 @@ export function PaginaSessao({
                         ) : (
                           <>
                             <CabecalhoTabela podeEditar={podeEditar} />
-                            <ul>
-                              <AnimatePresence initial={false}>
-                                {visiveis.map(p => (
-                                  <LinhaProcesso key={p.id} p={p} carteira={carteira} podeEditar={podeEditar} acoes={acoes} />
-                                ))}
-                              </AnimatePresence>
-                            </ul>
+                            {grupos ? (
+                              <GruposProcessos key={agrupar} grupos={grupos} carteira={carteira} podeEditar={podeEditar} acoes={acoes} />
+                            ) : (
+                              <ul key="lista" className="cascata">
+                                <AnimatePresence initial={false}>
+                                  {visiveis.map(p => (
+                                    <LinhaProcesso key={p.id} p={p} carteira={carteira} podeEditar={podeEditar} acoes={acoes} />
+                                  ))}
+                                </AnimatePresence>
+                              </ul>
+                            )}
                           </>
                         )}
                       </div>
