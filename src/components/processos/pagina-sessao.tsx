@@ -15,7 +15,7 @@ import {
 } from '@/components/icons';
 import { tocouNoAvisoDeVersao } from '@/components/aviso-versao';
 import { BotaoAgrupar, GruposProcessos } from '@/components/processos/agrupar-processos';
-import { BarraEtapas, GanhoPorSetor } from '@/components/processos/graficos-sessao';
+import { BarraEtapas, BarrasContagem, BarraSegmentada } from '@/components/processos/graficos-sessao';
 import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components/processos/lista-processos';
 import { ORIGENS_FILTRO, PainelFiltros } from '@/components/processos/painel-filtros';
 import { useArrastarParaFechar } from '@/components/ui/arrastar-fechar';
@@ -26,10 +26,10 @@ import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { Selo } from '@/components/ui/selo';
 import { PRIORIDADES, rotuloDe, rotuloStatus, STATUS_SESSAO, type Processo, type Sessao } from '@/lib/dominio';
 import { AGRUPAMENTOS, agruparProcessos, type Agrupamento } from '@/lib/agrupar';
+import { contagem, perfilProcessos } from '@/lib/perfil';
 import { contarFiltros, etiquetasAtivas, FILTROS_VAZIOS, filtrarProcessos, type FiltrosProcesso } from '@/lib/filtros';
-import { horas, numero, percentual, reais, reaisCompacto } from '@/lib/formato';
+import { horas, numero, percentual } from '@/lib/formato';
 import type { Carteira } from '@/lib/local/carteira';
-import { agregarPor, consolidar } from '@/lib/roi';
 import { contarEtapas } from '@/lib/sessao-resumo';
 import { cn } from '@/lib/cn';
 
@@ -132,13 +132,17 @@ export function PaginaSessao({
   const info = { setor: setorDe, ganhoMes: (p: Processo) => carteira.roiDe(p).ganho_mes };
   const visiveis = filtrarProcessos(todos, filtros, 'todos', info);
   const grupos = agrupar === 'nenhum' ? null : agruparProcessos(visiveis, agrupar, { setor: setorDe, cfg: carteira.config });
-  const roi = consolidar(todos, carteira.ctxDe);
   const etapas = contarEtapas(todos);
-  const setores = agregarPor(todos, p => setorDe(p) ?? 'Sem setor', carteira.ctxDe).map(g => ({
-    setor: g.chave ?? 'Sem setor',
-    ganho: g.roi.ganho_mes,
-    processos: g.roi.processos,
-  }));
+  // Perfil dos processos (diagnóstico): como são feitos hoje, não o ganho.
+  const perfil = perfilProcessos(todos, {
+    setor: setorDe,
+    horas: p => carteira.roiDe(p).horas_mes,
+    completo: p => carteira.roiDe(p).completo,
+    cfg: carteira.config,
+  });
+  const manuais = contagem(perfil.automacao, 'manual');
+  const semDoc = contagem(perfil.documentacao, 'nao');
+  const fracao = (n: number) => (todos.length ? percentual(n / todos.length) : '-');
   const ativos = contarFiltros(filtros);
   const etiquetas = etiquetasAtivas(filtros, {
     status: s => rotuloStatus(s, carteira.config),
@@ -278,29 +282,37 @@ export function PaginaSessao({
                         <Kpi
                           destaque
                           rotulo="Processos"
-                          valor={<NumeroAnimado deZero valor={roi.processos} formatar={n => numero(Math.round(n))} />}
-                          apoio={roi.processos ? `${roi.completos} com números completos` : 'Nenhum ainda'}
+                          valor={<NumeroAnimado deZero valor={perfil.total} formatar={n => numero(Math.round(n))} />}
+                          apoio={
+                            perfil.total
+                              ? `${perfil.setores.filter(s => s.chave).length} setores - ${perfil.completos} com números`
+                              : 'Nenhum ainda'
+                          }
                         />
                         <Kpi
                           rotulo="Horas por mês"
-                          valor={<NumeroAnimado deZero valor={roi.horas_mes} formatar={horas} />}
-                          apoio={roi.horas_liberadas_mes > 0 ? `${horas(roi.horas_liberadas_mes)} liberadas` : 'Sem horas calculadas'}
+                          valor={<NumeroAnimado deZero valor={perfil.horas_mes} formatar={horas} />}
+                          apoio={
+                            perfil.pessoas > 0
+                              ? `tempo gasto hoje, ${numero(perfil.pessoas)} pessoas envolvidas`
+                              : 'tempo gasto hoje nos processos'
+                          }
                         />
                         <Kpi
-                          rotulo="Ganho por mês"
-                          valor={<NumeroAnimado deZero valor={roi.ganho_mes} formatar={v => reais(Math.round(v))} />}
-                          apoio={roi.ganho_ano > 0 ? `${reaisCompacto(roi.ganho_ano)} por ano` : 'Faltam números para calcular'}
+                          rotulo="Feitos à mão"
+                          valor={<NumeroAnimado deZero valor={manuais} formatar={n => numero(Math.round(n))} />}
+                          apoio={`${fracao(manuais)} dos processos são manuais`}
                         />
                         <Kpi
-                          rotulo="Em risco"
-                          valor={<NumeroAnimado deZero valor={roi.em_risco} formatar={n => numero(Math.round(n))} />}
-                          apoio={roi.ganho_mes > 0 ? `${percentual(roi.fracao_validada)} do ganho validado` : 'Nenhum ganho validado'}
+                          rotulo="Sem documentação"
+                          valor={<NumeroAnimado deZero valor={semDoc} formatar={n => numero(Math.round(n))} />}
+                          apoio={`${fracao(semDoc)} dependem de quem faz`}
                         />
                       </div>
 
                       {/* Gráficos simples */}
                       {todos.length > 0 && (
-                        <div className="mt-2.5 grid gap-2.5 @3xl:grid-cols-2">
+                        <div className="mt-2.5 grid gap-2.5 @3xl:grid-cols-2 @6xl:grid-cols-3">
                           <Quadro titulo="Processos por etapa">
                             <BarraEtapas contagem={etapas} cfg={carteira.config} />
                             {/* Prioridade: contagem direta, sem cor (quatro números leem melhor que um gráfico). */}
@@ -310,7 +322,7 @@ export function PaginaSessao({
                                 {PRIORIDADES.map(pr => {
                                   const daPrioridade = todos.filter(p => p.eisenhower === pr.valor);
                                   const n = daPrioridade.length;
-                                  const ganho = consolidar(daPrioridade, carteira.ctxDe).ganho_mes;
+                                  const horasPr = daPrioridade.reduce((a, p) => a + (carteira.roiDe(p).horas_mes ?? 0), 0);
                                   return (
                                     <li key={pr.valor} className={cn(!n && 'opacity-55')}>
                                       <AlvoDica
@@ -322,7 +334,7 @@ export function PaginaSessao({
                                             {n} {n === 1 ? 'processo' : 'processos'}
                                             {todos.length > 0 && ` (${percentual(n / todos.length)})`}
                                             <span className="apoio">
-                                              {ganho > 0 ? `${reais(Math.round(ganho))} por mês` : (pr.dica ?? '')}
+                                              {horasPr > 0 ? `${horas(horasPr)} por mês hoje` : (pr.dica ?? '')}
                                             </span>
                                           </>
                                         }
@@ -336,8 +348,26 @@ export function PaginaSessao({
                               </ul>
                             </AreaDica>
                           </Quadro>
-                          <Quadro titulo="Ganho por setor (mês)">
-                            <GanhoPorSetor grupos={setores} />
+                          <Quadro titulo="Processos por setor">
+                            <BarrasContagem fatias={perfil.setores} total={perfil.total} vazio="Nenhum processo com setor ainda." />
+                          </Quadro>
+                          <Quadro titulo="Como é feito hoje">
+                            <h3 className="mb-2.5 text-[12px] font-medium text-tinta-2">Quão automático</h3>
+                            <BarraSegmentada fatias={perfil.automacao} rotulo="Quão automático" />
+                            <h3 className="mt-5 mb-2.5 border-t border-borda pt-4 text-[12px] font-medium text-tinta-2">Documentado</h3>
+                            <BarraSegmentada fatias={perfil.documentacao} rotulo="Documentado" />
+                          </Quadro>
+                          <Quadro titulo="Frequência">
+                            <BarrasContagem fatias={perfil.frequencias} total={perfil.total} vazio="Nenhuma frequência informada." />
+                          </Quadro>
+                          <Quadro titulo="Sistemas mais usados">
+                            <BarrasContagem fatias={perfil.sistemas} total={perfil.total} maximo={7} vazio="Nenhum sistema citado ainda." />
+                          </Quadro>
+                          <Quadro titulo="De onde vêm os números">
+                            <BarraSegmentada fatias={perfil.origens} rotulo="Origem dos números" />
+                            <p className="mt-4 border-t border-borda pt-3 text-[12px] leading-relaxed text-tinta-2">
+                              Medido pesa mais no diagnóstico; estimativa é para validar com o cliente.
+                            </p>
                           </Quadro>
                         </div>
                       )}

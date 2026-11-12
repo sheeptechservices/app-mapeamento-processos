@@ -25,7 +25,9 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   de cliente abrem com `.revelar`, lembradas no aparelho (`sl_mapa_abertas`). Cada sessão é um cartão (resumo, barra
   das etapas, pasta que entreabre no hover e fica aberta com o quadro) que abre o **quadro da sessão** por cima do
   mapa (`?s=`, `components/processos/pagina-sessao.tsx`, Radix Dialog z-40; painéis de processo z-50 por cima):
-  indicadores, gráficos simples (etapas, prioridade, ganho por setor em `graficos-sessao.tsx`), busca e filtros
+  indicadores e gráficos de **perfil** dos processos, não de ganho (é mapa para o relatório de diagnóstico: `lib/perfil.ts`
+  com teste; etapas, prioridade, setor, como é feito hoje, frequência, sistemas, origem dos números em
+  `graficos-sessao.tsx`), busca e filtros
   próprios, agrupar por setor/prioridade/frequência (`lib/agrupar.ts`, `agrupar-processos.tsx`; grupos recolhem),
   lista de processos (`lista-processos.tsx`, compartilhada com o mapa). Expandir (desktop) anima as margens
   do quadro até as bordas (`.quadro-sessao`/`.expandido`); Esc recolhe e depois fecha. No celular é folha de baixo

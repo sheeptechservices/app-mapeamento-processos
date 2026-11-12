@@ -26,7 +26,7 @@ import {
   semAcento,
   type FiltrosProcesso,
 } from '@/lib/filtros';
-import { numero, percentual, reais } from '@/lib/formato';
+import { horas, numero, percentual } from '@/lib/formato';
 import { useCarteira } from '@/lib/local/carteira';
 import { comIndicador } from '@/lib/local/gravacao';
 import { excluir, excluirCliente } from '@/lib/local/repo';
@@ -107,16 +107,20 @@ export default function MapaDeProcessos() {
     const termo = semAcento(filtros.busca.trim());
     // A busca acha processo (nome, ID, gargalo), cliente (nome) e sessão (título).
     const clientesAchados = new Set(termo ? carteira.clientes.filter(c => semAcento(c.nome).includes(termo)).map(c => c.id) : []);
-    const sessoesAchadas = new Set(
-      termo ? carteira.sessoes.filter(s => semAcento(s.titulo ?? '').includes(termo)).map(s => s.id) : [],
-    );
+    const sessoesAchadas = new Set(termo ? carteira.sessoes.filter(s => semAcento(s.titulo ?? '').includes(termo)).map(s => s.id) : []);
     const porFiltro = filtrarProcessos(carteira.processos, { ...filtros, busca: '' }, 'todos', info);
     const lista = termo
       ? porFiltro.filter(p => casaBusca(p, filtros.busca) || clientesAchados.has(p.cliente_id) || sessoesAchadas.has(p.sessao_id))
       : porFiltro;
     return {
       visiveis: lista,
-      mapa: montarMapa(carteira.clientes, carteira.sessoes, lista, filtrando(filtros), contarFiltros(filtros) ? new Set() : clientesAchados),
+      mapa: montarMapa(
+        carteira.clientes,
+        carteira.sessoes,
+        lista,
+        filtrando(filtros),
+        contarFiltros(filtros) ? new Set() : clientesAchados,
+      ),
     };
     // setorDe depende só de carteira.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,7 +149,6 @@ export default function MapaDeProcessos() {
       router.back();
     } else router.replace(rotas.mapa({}), { scroll: false });
   };
-
 
   const irPara = (o: { sessao?: string | null; processo?: string | null }) =>
     router.replace(rotas.mapa({ sessao: o.sessao === undefined ? sessaoAtiva : o.sessao, processo: o.processo }), { scroll: false });
@@ -187,7 +190,11 @@ export default function MapaDeProcessos() {
 
   return (
     <>
-      <CabecalhoPagina titulo="Mapa de processos" contagem={carteira?.processos.length} acao={carteira?.clientes.length ? botaoNovoCliente : undefined} />
+      <CabecalhoPagina
+        titulo="Mapa de processos"
+        contagem={carteira?.processos.length}
+        acao={carteira?.clientes.length ? botaoNovoCliente : undefined}
+      />
 
       {carteira && sessaoNoQuadro && (
         <PaginaSessao
@@ -220,15 +227,23 @@ export default function MapaDeProcessos() {
           <LinhaIndicadores>
             <Indicador
               destaque
+              rotulo={carteira.clientes.length === 1 ? 'cliente' : 'clientes'}
+              valor={<NumeroAnimado deZero valor={carteira.clientes.length} formatar={n => numero(Math.round(n))} />}
+              detalhe={`${carteira.sessoes.length} ${carteira.sessoes.length === 1 ? 'sessão' : 'sessões'} de mapeamento`}
+            />
+            <Indicador
               rotulo="processos"
               valor={<NumeroAnimado deZero valor={carteira.roi.processos} formatar={n => numero(Math.round(n))} />}
-              detalhe={`${carteira.clientes.length} ${carteira.clientes.length === 1 ? 'cliente' : 'clientes'} - ${carteira.sessoes.length} ${carteira.sessoes.length === 1 ? 'sessão' : 'sessões'}`}
+              detalhe={
+                carteira.roi.processos
+                  ? `${percentual(carteira.roi.completos / carteira.roi.processos)} com números completos`
+                  : 'nenhum mapeado ainda'
+              }
             />
-            <Indicador rotulo="em risco" valor={<NumeroAnimado deZero valor={carteira.roi.em_risco} formatar={n => numero(Math.round(n))} />} detalhe="marcados como em risco" />
             <Indicador
-              rotulo="validado"
-              valor={<NumeroAnimado deZero valor={carteira.roi.fracao_validada} formatar={percentual} />}
-              detalhe={`${reais(carteira.roi.ganho_validado_mes)} de ${reais(carteira.roi.ganho_mes)} por mês`}
+              rotulo="horas por mês"
+              valor={<NumeroAnimado deZero valor={carteira.roi.horas_mes} formatar={horas} />}
+              detalhe="tempo gasto hoje nos processos mapeados"
             />
           </LinhaIndicadores>
 
@@ -255,7 +270,9 @@ export default function MapaDeProcessos() {
               <IconFiltros size={18} />
               <span className="max-tablet:sr-only">Filtros</span>
               {ativos > 0 && (
-                <span className="numeros grid h-5 min-w-5 place-items-center rounded-pilula bg-verde px-1 text-[11px] text-sobre-verde">{ativos}</span>
+                <span className="numeros grid h-5 min-w-5 place-items-center rounded-pilula bg-verde px-1 text-[11px] text-sobre-verde">
+                  {ativos}
+                </span>
               )}
             </button>
           </div>
