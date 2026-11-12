@@ -3,9 +3,8 @@ import { cn } from '@/lib/cn';
 
 /**
  * Linha de indicadores com divisórias verticais finas (assinatura da v6): número
- * e rótulo lado a lado, numa faixa clara de cantos arredondados. No celular os
- * três cabem numa linha, como na referência; o rótulo quebra embaixo se faltar
- * espaço.
+ * com o rótulo embaixo, numa faixa clara de cantos arredondados. No celular os
+ * três cabem numa linha, como na referência.
  */
 export function LinhaIndicadores({ children, className }: { children: ReactNode; className?: string }) {
   return (
@@ -34,7 +33,7 @@ export function Indicador({
         destaque ? 'bg-verde-suave/60 hover:bg-verde-suave' : 'hover:bg-sutil/60',
       )}
     >
-      <p className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+      <p className="flex flex-col items-start gap-1">
         <span className="numeros inline-block text-[17px] leading-none tracking-tight transition-transform duration-200 ease-v6 group-hover/ind:-translate-y-0.5 tablet:text-[28px]">
           {valor}
         </span>
