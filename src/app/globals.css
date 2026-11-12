@@ -16,6 +16,8 @@
   --tinta-2: #86868b; /* texto secundário */
   --tinta-3: #b4b4b8; /* texto terciário, ícone inativo */
   --sobre-tinta: #ffffff; /* texto sobre o preto */
+  --rolagem: #d6d6d9; /* polegar da barra de rolagem */
+  --rolagem-forte: #b4b4b8; /* polegar com o mouse em cima da área */
   /* Verde Sheep (o lima da marca). Como fundo e acento; para texto sobre fundo
      claro use --verde-tinta (o lima puro não tem contraste sobre branco). */
   --verde: #beff01;
@@ -75,6 +77,8 @@
   --tinta-2: #8e8e93;
   --tinta-3: #5c5c62;
   --sobre-tinta: #0e0e0f;
+  --rolagem: #36363b;
+  --rolagem-forte: #4e4e55;
   --verde-tinta: #beff01;
   --verde-suave: rgba(190, 255, 1, 0.12);
 
@@ -162,26 +166,39 @@ body {
     font: inherit;
   }
 
-  /* Barra de rolagem fina e discreta em todo o app: polegar em tinta bem
-     clara, trilho transparente; escurece um pouco ao passar o mouse na área. */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--tinta) 16%, transparent) transparent;
-  }
-  *:hover {
-    scrollbar-color: color-mix(in oklab, var(--tinta) 30%, transparent) transparent;
-  }
-  /* Safari antigo, que não conhece scrollbar-width/scrollbar-color. */
+  /* Barra de rolagem fina e discreta em todo o app: polegar arredondado em
+     cinza claro, sem trilho e sem setas; escurece ao passar o mouse na área.
+     Chrome, Edge e Safari usam os pseudo-elementos (são os únicos que tiram as
+     setas no Windows; com scrollbar-color definido o Chrome os ignora). */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
   }
-  ::-webkit-scrollbar-track {
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
     background: transparent;
   }
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
   ::-webkit-scrollbar-thumb {
-    background: color-mix(in oklab, var(--tinta) 18%, transparent);
+    background: var(--rolagem);
+    background-clip: padding-box;
+    border: 3px solid transparent; /* polegar de 4px com folga para o clique */
     border-radius: 999px;
+  }
+  *:hover::-webkit-scrollbar-thumb {
+    background-color: var(--rolagem-forte);
+  }
+  /* Firefox, que não tem os pseudo-elementos. */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--rolagem) transparent;
+    }
+    *:hover {
+      scrollbar-color: var(--rolagem-forte) transparent;
+    }
   }
 }
 
