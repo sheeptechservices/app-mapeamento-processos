@@ -32,7 +32,7 @@ export function Acao({ rotulo, onClick, children, perigo }: { rotulo: string; on
       }}
       className={cn(
         'foco aperta relative z-10 grid size-9 place-items-center rounded-pilula text-tinta-2',
-        perigo ? 'hover:bg-risco-fundo hover:text-risco' : 'hover:bg-sutil hover:text-tinta',
+        perigo ? 'hover:bg-risco hover:text-white' : 'hover:bg-sutil hover:text-tinta',
       )}
     >
       {children}
@@ -78,7 +78,7 @@ export function MenuAcoes({
               onSelect={i.aoEscolher}
               className={cn(
                 'flex min-h-[var(--toque)] cursor-pointer items-center gap-2.5 rounded-xl px-3 text-sm font-medium outline-none',
-                i.perigo ? 'text-risco data-[highlighted]:bg-risco-fundo' : 'data-[highlighted]:bg-sutil',
+                i.perigo ? 'text-risco data-[highlighted]:bg-risco data-[highlighted]:text-white' : 'data-[highlighted]:bg-sutil',
               )}
             >
               {i.icone} {i.rotulo}

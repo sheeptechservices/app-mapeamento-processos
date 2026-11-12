@@ -213,7 +213,7 @@ export function PainelProcesso({
       <button
         type="button"
         onClick={() => setExcluindo(true)}
-        className="foco inline-flex min-h-12 items-center gap-2 rounded-pilula border border-borda-forte bg-superficie px-5 text-[14px] font-semibold text-risco transition-colors hover:bg-risco-fundo"
+        className="foco inline-flex min-h-12 items-center gap-2 rounded-pilula bg-risco px-5 text-[14px] font-semibold text-white transition-[filter,translate,scale] hover:-translate-y-px hover:brightness-110 active:scale-[0.97]"
       >
         <IconExcluir size={17} /> Excluir
       </button>
