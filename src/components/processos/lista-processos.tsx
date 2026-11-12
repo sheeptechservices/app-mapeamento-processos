@@ -2,7 +2,7 @@
 
 import { DropdownMenu } from 'radix-ui';
 import type { ReactNode } from 'react';
-import { IconEditar, IconExcluir, IconMais } from '@/components/icons';
+import { IconExcluir, IconMais } from '@/components/icons';
 import { SeloRisco, SeloStatus } from '@/components/selos';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { ItemVivo, Pulso } from '@/components/ui/vivo';
@@ -20,7 +20,17 @@ export interface AcoesProcesso {
 }
 
 /** Botão de ícone das pastas: sempre visível no celular, no hover do desktop. */
-export function Acao({ rotulo, onClick, children, perigo }: { rotulo: string; onClick: () => void; children: ReactNode; perigo?: boolean }) {
+export function Acao({
+  rotulo,
+  onClick,
+  children,
+  perigo,
+}: {
+  rotulo: string;
+  onClick: () => void;
+  children: ReactNode;
+  perigo?: boolean;
+}) {
   return (
     <button
       type="button"
@@ -93,14 +103,26 @@ export function MenuAcoes({
 export const revelaAcoes =
   'flex shrink-0 items-center gap-0.5 transition-opacity desktop:opacity-0 desktop:group-hover/linha:opacity-100 desktop:group-focus-within/linha:opacity-100';
 
-export function LinhaProcesso({ p, carteira, podeEditar, acoes }: { p: Processo; carteira: Carteira; podeEditar: boolean; acoes: AcoesProcesso }) {
+export function LinhaProcesso({
+  p,
+  carteira,
+  podeEditar,
+  acoes,
+}: {
+  p: Processo;
+  carteira: Carteira;
+  podeEditar: boolean;
+  acoes: AcoesProcesso;
+}) {
   const r = carteira.roiDe(p);
   const setor = p.area_id ? carteira.areaPorId.get(p.area_id)?.nome : null;
+  // Espaço curto (celular): só o nome e, embaixo, o começo da descrição (sem o código).
+  const descricao = p.descricao?.replace(/\s+/g, ' ').trim();
   return (
     <ItemVivo className="border-t border-borda first:border-t-0">
       <div className="group/linha relative isolate flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors before:absolute before:inset-y-3 before:left-0 before:w-[3px] before:origin-center before:scale-y-0 before:rounded-r-full before:bg-verde before:transition-transform before:duration-200 before:ease-v6 hover:bg-sutil/70 hover:before:scale-y-100 focus-within:before:scale-y-100">
         <Pulso quando={p.atualizado_em} />
-        <span className="numeros w-[62px] shrink-0 text-[12px] !font-medium text-tinta-3 @max-md:hidden">{p.codigo}</span>
+        <span className="numeros w-[62px] shrink-0 text-[12px] !font-medium text-tinta-3 @max-xl:hidden">{p.codigo}</span>
         <div className="min-w-0 flex-1">
           {/* Título cobre a linha (link esticado): clique e teclado abrem o processo. */}
           <button
@@ -110,16 +132,14 @@ export function LinhaProcesso({ p, carteira, podeEditar, acoes }: { p: Processo;
           >
             {p.titulo || 'Sem título'}
           </button>
-          <p className="mt-0.5 truncate text-[12px] text-tinta-2">
-            {/* Espaço curto: o código vem para cá e o status logo abaixo. */}
-            <span className="numeros text-tinta-3 @md:hidden">{p.codigo} - </span>
+          <p className={cn('mt-0.5 truncate text-[12px] text-tinta-2', descricao && '@max-xl:hidden')}>
             {setor ? `# ${setor}` : 'Sem setor'}
             {r.horas_mes != null ? ` - ${horas(r.horas_mes)}/mês` : ''}
             {!r.completo ? ` - falta ${r.faltando.length === 1 ? '1 número' : `${r.faltando.length} números`}` : ''}
           </p>
-          <span className="mt-1.5 block @md:hidden">{p.em_risco ? <SeloRisco /> : <SeloStatus status={p.status} cfg={carteira.config} />}</span>
+          {descricao && <p className="mt-0.5 truncate text-[12px] text-tinta-2 @xl:hidden">{descricao}</p>}
         </div>
-        <span className="hidden w-[112px] shrink-0 tablet:block @max-md:!hidden">
+        <span className="hidden w-[112px] shrink-0 tablet:block @max-xl:!hidden">
           {p.em_risco ? <SeloRisco /> : <SeloStatus status={p.status} cfg={carteira.config} />}
         </span>
         <span className="w-[86px] shrink-0 text-right">
@@ -129,10 +149,8 @@ export function LinhaProcesso({ p, carteira, podeEditar, acoes }: { p: Processo;
           <span className="block text-[11px] text-tinta-3">por mês</span>
         </span>
         {podeEditar && (
-          <span className={cn(revelaAcoes, 'w-[76px] justify-end @max-md:!hidden')}>
-            <Acao rotulo={`Editar ${p.codigo}`} onClick={() => acoes.abrirProcesso(p)}>
-              <IconEditar size={16} />
-            </Acao>
+          // Sem lápis: tocar na linha já abre o processo para editar.
+          <span className={cn(revelaAcoes, 'w-[38px] justify-end @max-md:!hidden')}>
             <Acao rotulo={`Excluir ${p.codigo}`} onClick={() => acoes.excluirProcesso(p)} perigo>
               <IconExcluir size={16} />
             </Acao>
@@ -150,11 +168,11 @@ export function CabecalhoTabela({ podeEditar }: { podeEditar: boolean }) {
       aria-hidden="true"
       className="hidden items-center gap-3 border-b border-borda bg-sutil/60 px-4 py-2 text-[11px] font-semibold tracking-wide text-tinta-3 uppercase tablet:flex @max-md:!hidden"
     >
-      <span className="w-[62px] shrink-0">ID</span>
+      <span className="w-[62px] shrink-0 @max-xl:hidden">ID</span>
       <span className="flex-1">Processo</span>
-      <span className="w-[112px] shrink-0">Status</span>
+      <span className="w-[112px] shrink-0 @max-xl:hidden">Status</span>
       <span className="w-[86px] shrink-0 text-right">Ganho/mês</span>
-      {podeEditar && <span className="w-[76px] shrink-0" />}
+      {podeEditar && <span className="w-[38px] shrink-0" />}
     </div>
   );
 }

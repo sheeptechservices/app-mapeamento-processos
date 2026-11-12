@@ -26,6 +26,11 @@ export interface Perfil {
   documentacao: Fatia[];
   origens: Fatia[];
   sistemas: Fatia[];
+  /**
+   * Sinais de que a sessão pede automação (radar): cada eixo é quantos processos
+   * têm o sinal, de 0 ao total. Quanto mais cheio, mais trabalho manual e frágil.
+   */
+  sinais: { chave: string; rotulo: string; dica: string; n: number }[];
 }
 
 export const NAO_INFORMADO = 'Não informado';
@@ -105,6 +110,39 @@ export function perfilProcessos(processos: Processo[], info: Info): Perfil {
     documentacao: porOpcoes(processos, DOCUMENTADO, p => p.documentado, horas),
     origens: porOpcoes(processos, ORIGENS_CONFIANCA, p => p.origem_numero, horas),
     sistemas,
+    sinais: [
+      { chave: 'manual', rotulo: 'Manual', dica: 'feitos à mão', n: processos.filter(p => p.nivel_automacao === 'manual').length },
+      {
+        chave: 'sem_doc',
+        rotulo: 'Sem documentação',
+        dica: 'sem passo a passo escrito',
+        n: processos.filter(p => p.documentado === 'nao').length,
+      },
+      {
+        chave: 'frequente',
+        rotulo: 'Alta frequência',
+        dica: 'diários ou semanais',
+        n: processos.filter(p => p.frequencia === 'diario' || p.frequencia === 'semanal').length,
+      },
+      {
+        chave: 'prioridade',
+        rotulo: 'Prioridade alta',
+        dica: 'urgentes ou de prioridade alta',
+        n: processos.filter(p => p.eisenhower === 1 || p.eisenhower === 2).length,
+      },
+      {
+        chave: 'sistemas',
+        rotulo: 'Vários sistemas',
+        dica: 'passam por 2 sistemas ou mais',
+        n: processos.filter(p => new Set(p.sistemas.map(s => s.trim().toLocaleLowerCase('pt-BR')).filter(Boolean)).size >= 2).length,
+      },
+      {
+        chave: 'validar',
+        rotulo: 'Números a validar',
+        dica: 'com estimativa ou sem origem do número',
+        n: processos.filter(p => p.origem_numero == null || p.origem_numero === 'estimativa').length,
+      },
+    ],
   };
 }
 

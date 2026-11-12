@@ -15,7 +15,8 @@ import {
 } from '@/components/icons';
 import { tocouNoAvisoDeVersao } from '@/components/aviso-versao';
 import { BotaoAgrupar, GruposProcessos } from '@/components/processos/agrupar-processos';
-import { BarraEtapas, BarrasContagem, BarraSegmentada } from '@/components/processos/graficos-sessao';
+import { Colunas, Donut, Pirulito, Radar, RAMPA_AZUL, Waffle } from '@/components/processos/graficos-perfil';
+import { BarraEtapas, BarrasContagem } from '@/components/processos/graficos-sessao';
 import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components/processos/lista-processos';
 import { ORIGENS_FILTRO, PainelFiltros } from '@/components/processos/painel-filtros';
 import { useArrastarParaFechar } from '@/components/ui/arrastar-fechar';
@@ -312,7 +313,7 @@ export function PaginaSessao({
 
                       {/* Gráficos simples */}
                       {todos.length > 0 && (
-                        <div className="mt-2.5 grid gap-2.5 @3xl:grid-cols-2 @6xl:grid-cols-3">
+                        <div className="mt-2.5 grid grid-flow-row-dense gap-2.5 @3xl:grid-cols-2 @6xl:grid-cols-3">
                           <Quadro titulo="Processos por etapa">
                             <BarraEtapas contagem={etapas} cfg={carteira.config} />
                             {/* Prioridade: contagem direta, sem cor (quatro números leem melhor que um gráfico). */}
@@ -348,25 +349,49 @@ export function PaginaSessao({
                               </ul>
                             </AreaDica>
                           </Quadro>
+                          <Quadro titulo="Sinais de automação" className="@3xl:row-span-2">
+                            <p className="-mt-1.5 mb-3 text-[12px] leading-relaxed text-tinta-2">
+                              Parte dos processos com cada sinal. Quanto mais aberta a forma, mais a sessão pede automação.
+                            </p>
+                            <Radar eixos={perfil.sinais} total={perfil.total} />
+                          </Quadro>
                           <Quadro titulo="Processos por setor">
-                            <BarrasContagem fatias={perfil.setores} total={perfil.total} vazio="Nenhum processo com setor ainda." />
+                            <BarrasContagem
+                              colorido
+                              fatias={perfil.setores}
+                              total={perfil.total}
+                              vazio="Nenhum processo com setor ainda."
+                            />
                           </Quadro>
                           <Quadro titulo="Como é feito hoje">
-                            <h3 className="mb-2.5 text-[12px] font-medium text-tinta-2">Quão automático</h3>
-                            <BarraSegmentada fatias={perfil.automacao} rotulo="Quão automático" />
-                            <h3 className="mt-5 mb-2.5 border-t border-borda pt-4 text-[12px] font-medium text-tinta-2">Documentado</h3>
-                            <BarraSegmentada fatias={perfil.documentacao} rotulo="Documentado" />
+                            <div className="space-y-4">
+                              <Donut fatias={perfil.automacao} rotulo="Quão automático" centro={fracao(manuais)} legendaCentro="manuais" />
+                              <div className="border-t border-borda pt-4">
+                                <Donut
+                                  fatias={perfil.documentacao}
+                                  rotulo="Documentado"
+                                  centro={fracao(semDoc)}
+                                  legendaCentro="sem doc."
+                                  rampa={RAMPA_AZUL}
+                                />
+                              </div>
+                            </div>
                           </Quadro>
                           <Quadro titulo="Frequência">
-                            <BarrasContagem fatias={perfil.frequencias} total={perfil.total} vazio="Nenhuma frequência informada." />
+                            <Colunas fatias={perfil.frequencias} total={perfil.total} vazio="Nenhuma frequência informada." />
                           </Quadro>
                           <Quadro titulo="Sistemas mais usados">
-                            <BarrasContagem fatias={perfil.sistemas} total={perfil.total} maximo={7} vazio="Nenhum sistema citado ainda." />
+                            <Pirulito fatias={perfil.sistemas} total={perfil.total} vazio="Nenhum sistema citado ainda." />
                           </Quadro>
                           <Quadro titulo="De onde vêm os números">
-                            <BarraSegmentada fatias={perfil.origens} rotulo="Origem dos números" />
+                            <Waffle
+                              fatias={perfil.origens}
+                              rotulo="Origem dos números"
+                              // Estimativa (cautela), cliente informou, medido: categorias com rótulo na legenda.
+                              cores={['var(--serie-4)', 'var(--serie-1)', 'var(--serie-6)']}
+                            />
                             <p className="mt-4 border-t border-borda pt-3 text-[12px] leading-relaxed text-tinta-2">
-                              Medido pesa mais no diagnóstico; estimativa é para validar com o cliente.
+                              Um quadrinho por processo. Medido pesa mais no diagnóstico; estimativa é para validar com o cliente.
                             </p>
                           </Quadro>
                         </div>

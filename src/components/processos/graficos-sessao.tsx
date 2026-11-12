@@ -107,56 +107,6 @@ function DicaFatia({ f, total }: { f: Fatia; total: number }) {
 }
 
 /**
- * Distribuição ordinal (ex.: Manual -> Parcial -> Automático) numa barra
- * segmentada, com as cores da rampa na ordem e "Não informado" em cinza. A
- * legenda traz nome e quantidade de todas as opções; cada trecho tem dica.
- */
-export function BarraSegmentada({ fatias, rotulo }: { fatias: Fatia[]; rotulo: string }) {
-  const total = fatias.reduce((a, f) => a + f.n, 0);
-  const conhecidas = fatias.filter(f => f.chave).length;
-  // Rampa ordinal validada: com 3 opções usa as pontas e o meio (1, 3, 5).
-  const cor = (f: Fatia, i: number) =>
-    !f.chave ? 'var(--borda-forte)' : `var(--etapa-${conhecidas <= 1 ? 3 : Math.round(1 + (i * 4) / (conhecidas - 1))})`;
-  const comCor = fatias.map((f, i) => ({ f, cor: cor(f, i) }));
-  const resumo = fatias
-    .filter(f => f.n)
-    .map(f => `${f.n} ${f.rotulo.toLowerCase()}`)
-    .join(', ');
-  return (
-    <div>
-      <AreaDica>
-        <div
-          role="img"
-          aria-label={total ? `${rotulo}: ${resumo}` : `${rotulo}: nenhum processo`}
-          className="marcas flex h-3 w-full gap-[2px] rounded-pilula bg-sutil"
-        >
-          {comCor
-            .filter(({ f }) => f.n > 0)
-            .map(({ f, cor }) => (
-              <AlvoDica
-                key={f.chave || 'sem'}
-                id={f.chave || 'sem'}
-                conteudo={<DicaFatia f={f} total={total} />}
-                className="relative h-full cursor-default transition-[flex-grow,opacity] duration-500 ease-v6 before:absolute before:inset-x-0 before:-inset-y-2.5 before:content-[''] first:rounded-l-pilula last:rounded-r-pilula"
-                style={{ flexGrow: f.n, flexBasis: 0, background: cor, animation: 'cresce 0.7s var(--curva) both' }}
-              />
-            ))}
-        </div>
-      </AreaDica>
-      <ul className="mt-3 grid grid-cols-2 gap-x-5 gap-y-1.5">
-        {comCor.map(({ f, cor }) => (
-          <li key={f.chave || 'sem'} className={cn('flex items-center gap-2 text-[13px]', !f.n && 'text-tinta-3')}>
-            <span aria-hidden="true" className="size-2.5 shrink-0 rounded-[3px]" style={{ background: cor }} />
-            <span className="min-w-0 truncate text-tinta-2">{f.rotulo}</span>
-            <span className="numeros ml-auto text-tinta">{f.n}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/**
  * Quantos processos em cada categoria (setor, frequência, sistema): barras
  * horizontais em tinta, número escrito ao lado. Mostra as maiores; o resto soma
  * em "Outros". A dica traz a parte do total e as horas por mês.
@@ -165,6 +115,7 @@ export function BarrasContagem({
   fatias,
   total,
   maximo = 6,
+  colorido,
   vazio,
 }: {
   fatias: Fatia[];
@@ -172,6 +123,8 @@ export function BarrasContagem({
   total: number;
   maximo?: number;
   vazio: string;
+  /** Cor de identidade por linha (paleta categórica --serie-*, ordem fixa); Outros e Sem setor em cinza. */
+  colorido?: boolean;
 }) {
   if (!fatias.length) return <p className="text-[13px] leading-relaxed text-tinta-2">{vazio}</p>;
   const topo = fatias.slice(0, maximo);
@@ -191,7 +144,7 @@ export function BarrasContagem({
   return (
     <AreaDica>
       <ul className="marcas space-y-3">
-        {linhas.map(l => (
+        {linhas.map((l, i) => (
           <li key={l.chave || 'sem'}>
             <AlvoDica id={l.chave || 'sem'} className="block cursor-default" conteudo={<DicaFatia f={l} total={total} />}>
               <span className="flex items-baseline justify-between gap-3 text-[13px]">
@@ -199,7 +152,16 @@ export function BarrasContagem({
                 <span className="numeros shrink-0 text-tinta">{numero(l.n)}</span>
               </span>
               <span className="barra mt-1.5 block">
-                <span style={{ width: `${Math.max((l.n / maior) * 100, 3)}%`, ...(l.chave ? {} : { background: 'var(--borda-forte)' }) }} />
+                <span
+                  style={{
+                    width: `${Math.max((l.n / maior) * 100, 3)}%`,
+                    ...(!l.chave || l.chave === '__outros'
+                      ? { background: 'var(--borda-forte)' }
+                      : colorido && i < 7
+                        ? { background: `var(--serie-${i + 1})` }
+                        : {}),
+                  }}
+                />
               </span>
             </AlvoDica>
           </li>

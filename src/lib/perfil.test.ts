@@ -86,6 +86,17 @@ describe('perfilProcessos', () => {
     ]);
   });
 
+  it('sinais do radar: quantos processos têm cada sinal', () => {
+    expect(Object.fromEntries(perfil.sinais.map(s => [s.chave, s.n]))).toEqual({
+      manual: 2,
+      sem_doc: 1,
+      frequente: 1,
+      prioridade: 0,
+      sistemas: 1, // Excel e excel no mesmo processo contam como um só
+      validar: 2,
+    });
+  });
+
   it('sistema conta uma vez por processo, juntando maiúsculas', () => {
     expect(perfil.sistemas.map(f => [f.rotulo, f.n])).toEqual([
       ['Excel', 3],

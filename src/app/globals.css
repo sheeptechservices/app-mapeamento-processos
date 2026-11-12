@@ -24,6 +24,20 @@
   --sobre-verde: #0e0e0f;
   --verde-tinta: #4f6f00;
   --verde-suave: #eef7d2;
+  /* Paleta categórica dos gráficos (identidade: setor, sistema). Ordem fixa, nunca
+     ciclada; validada no validador de paletas (CVD e normal ok; as de contraste
+     baixo sempre com rótulo escrito ao lado). */
+  --serie-1: #2a78d6;
+  --serie-2: #eb6834;
+  --serie-3: #1baf7a;
+  --serie-4: #eda100;
+  --serie-5: #e87ba4;
+  --serie-6: #008300;
+  --serie-7: #6250d6;
+  /* Rampa ordinal azul (3 passos, validada): segunda escala com ordem, para não repetir o verde. */
+  --azul-1: #86b6ef;
+  --azul-2: #3987e5;
+  --azul-3: #184f95;
   --lima: var(--verde);
   --sobre-lima: var(--sobre-verde);
 
@@ -81,6 +95,16 @@
   --rolagem-forte: #4e4e55;
   --verde-tinta: #beff01;
   --verde-suave: rgba(190, 255, 1, 0.12);
+  --serie-1: #3987e5;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+  --serie-4: #c98500;
+  --serie-5: #d55181;
+  --serie-6: #008300;
+  --serie-7: #9085e9;
+  --azul-1: #2a5a96;
+  --azul-2: #3987e5;
+  --azul-3: #9ec5f4;
 
   --risco: #ff7b70;
   --risco-fundo: rgba(201, 55, 44, 0.2);
@@ -406,6 +430,42 @@ textarea.campo {
   from {
     transform: scaleX(0);
   }
+}
+/* Gráficos de perfil (graficos-perfil.tsx): coluna sobe, quadrinho surge, donut gira, radar abre. */
+@keyframes sobe {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes surge {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+.donut-entra {
+  animation: donut-gira 0.8s var(--curva) both;
+}
+@keyframes donut-gira {
+  from {
+    opacity: 0;
+    rotate: -60deg;
+  }
+}
+.radar-entra {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: radar-abre 0.7s var(--curva) both;
+}
+@keyframes radar-abre {
+  from {
+    opacity: 0;
+    scale: 0.3;
+  }
+}
+/* Fatia de donut em foco: as outras esmaecem. */
+.donut-entra:has([data-ativa]) circle[stroke-dasharray]:not([data-ativa]) {
+  opacity: 0.4;
 }
 
 /* ─── Movimento ─────────────────────────────────────────────────────── */

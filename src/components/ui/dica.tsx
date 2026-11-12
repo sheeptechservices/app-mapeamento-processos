@@ -113,3 +113,32 @@ export function AlvoDica({
     </span>
   );
 }
+
+/**
+ * Para marcas que não são `span` (fatias de donut, pontos de radar, quadrinhos
+ * em SVG): devolve os eventos e o `data-ativa` para espalhar no elemento.
+ * `ponto` diz onde o balão aponta, nas coordenadas da tela (padrão: o topo do
+ * centro do elemento).
+ */
+export function useAlvoDica() {
+  const ctx = useContext(Contexto);
+  return (id: string, conteudo: ReactNode, ponto?: (el: Element) => { x: number; y: number }) => {
+    const posicionar = (el: Element, toque: boolean) => {
+      const area = ctx?.area.current;
+      if (!area || !ctx) return;
+      const ra = area.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const p = ponto ? ponto(el) : { x: r.left + r.width / 2, y: r.top };
+      ctx.mostrar({ id, conteudo, x: p.x - ra.left, y: p.y - ra.top, toque });
+    };
+    return {
+      'data-ativa': ctx?.ativa?.id === id || undefined,
+      onPointerEnter: (e: React.PointerEvent<Element>) => e.pointerType !== 'touch' && posicionar(e.currentTarget, false),
+      onPointerUp: (e: React.PointerEvent<Element>) => {
+        if (e.pointerType !== 'touch') return;
+        if (ctx?.ativa?.id === id) ctx.esconder();
+        else posicionar(e.currentTarget, true);
+      },
+    };
+  };
+}
