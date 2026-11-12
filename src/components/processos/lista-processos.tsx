@@ -7,7 +7,7 @@ import { SeloRisco, SeloStatus } from '@/components/selos';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { ItemVivo, Pulso } from '@/components/ui/vivo';
 import type { Processo } from '@/lib/dominio';
-import { reais } from '@/lib/formato';
+import { completude } from '@/lib/completude';
 import type { Carteira } from '@/lib/local/carteira';
 import { cn } from '@/lib/cn';
 
@@ -114,7 +114,9 @@ export function LinhaProcesso({
   podeEditar: boolean;
   acoes: AcoesProcesso;
 }) {
-  const r = carteira.roiDe(p);
+  // Quanto do cadastro já foi levantado (ver lib/completude.ts).
+  const c = completude(p);
+  const cheio = c.fracao >= 1;
   // Nome e, embaixo, o começo da descrição. Em espaço curto (celular) o código some.
   const descricao = p.descricao?.replace(/\s+/g, ' ').trim();
   return (
@@ -139,11 +141,13 @@ export function LinhaProcesso({
         <span className="hidden w-[112px] shrink-0 tablet:block @max-xl:!hidden">
           {p.em_risco ? <SeloRisco /> : <SeloStatus status={p.status} cfg={carteira.config} />}
         </span>
-        <span className="w-[86px] shrink-0 text-right">
-          <span className="numeros block text-[14px]">
-            {r.ganho_mes != null && r.ganho_mes > 0 ? <NumeroAnimado valor={r.ganho_mes} formatar={reais} /> : '-'}
+        <span className="w-[86px] shrink-0 text-right" title={cheio ? 'Cadastro completo' : `Falta: ${c.faltando.join(', ')}`}>
+          <span className={cn('numeros block text-[14px]', cheio && 'text-verde-tinta')}>
+            <NumeroAnimado valor={c.fracao} formatar={v => `${Math.round(v * 100)}%`} />
           </span>
-          <span className="block text-[11px] text-tinta-3">por mês</span>
+          <span className={cn('barra mt-1.5 ml-auto block w-[64px]', cheio && 'verde')}>
+            <span style={{ width: `${Math.max(c.fracao * 100, 4)}%` }} />
+          </span>
         </span>
         {podeEditar && (
           // Sem lápis: tocar na linha já abre o processo para editar.
@@ -168,7 +172,7 @@ export function CabecalhoTabela({ podeEditar }: { podeEditar: boolean }) {
       <span className="w-[62px] shrink-0 @max-xl:hidden">ID</span>
       <span className="flex-1">Processo</span>
       <span className="w-[112px] shrink-0 @max-xl:hidden">Status</span>
-      <span className="w-[86px] shrink-0 text-right">Ganho/mês</span>
+      <span className="w-[86px] shrink-0 text-right">Completude</span>
       {podeEditar && <span className="w-[38px] shrink-0" />}
     </div>
   );

@@ -31,7 +31,8 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   e sinais de automação do quadro. Cores: rampa verde `--etapa-*`, azul `--azul-1..3`, categórica `--serie-1..7`,
   todas validadas. Busca e filtros
   próprios, agrupar por setor/prioridade/frequência (`lib/agrupar.ts`, `agrupar-processos.tsx`; grupos recolhem),
-  lista de processos (`lista-processos.tsx`, compartilhada com o mapa). Expandir (desktop) anima as margens
+  lista de processos (`lista-processos.tsx`, compartilhada com o mapa; embaixo do nome a Descrição, e a coluna
+  Completude mostra quanto do cadastro está preenchido, `lib/completude.ts` com teste). Expandir (desktop) anima as margens
   do quadro até as bordas (`.quadro-sessao`/`.expandido`); Esc recolhe e depois fecha. No celular é folha de baixo
   em tela cheia. Abre por push (o voltar do celular fecha o quadro). Com busca ou filtro no mapa, os processos
   achados aparecem sob o cartão e a busca segue para a página da sessão. "Em risco" é filtro.
