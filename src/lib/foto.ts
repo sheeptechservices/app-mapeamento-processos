@@ -8,6 +8,23 @@ const LIMITE_ARQUIVO = 25 * 1024 * 1024;
 
 export class ErroFoto extends Error {}
 
+/** Reduz o que está no canvas para o lado maior LADO_FOTO e devolve o data URL (WebP; JPEG no Safari antigo). */
+export function fotoDoCanvas(origem: HTMLCanvasElement, lado = LADO_FOTO): string {
+  const escala = Math.min(1, lado / Math.max(origem.width, origem.height));
+  let canvas = origem;
+  if (escala < 1) {
+    canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(origem.width * escala));
+    canvas.height = Math.max(1, Math.round(origem.height * escala));
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new ErroFoto('Não foi possível ler a imagem.');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(origem, 0, 0, canvas.width, canvas.height);
+  }
+  const webp = canvas.toDataURL('image/webp', 0.8);
+  return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/jpeg', 0.82);
+}
+
 export async function reduzirFoto(arquivo: File, lado = LADO_FOTO): Promise<string> {
   if (!arquivo.type.startsWith('image/') && arquivo.type !== '') throw new ErroFoto('Escolha uma imagem (foto ou print).');
   if (arquivo.size > LIMITE_ARQUIVO) throw new ErroFoto('A imagem passa de 25 MB.');

@@ -13,6 +13,7 @@ export const TABELAS = [
   'roteiro_perguntas',
   'capturas',
   'anexos',
+  'anexos_partes',
 ] as const;
 export type TabelaSyncNome = (typeof TABELAS)[number];
 
@@ -141,6 +142,18 @@ export const COLUNAS: Record<TabelaSyncNome, Record<string, Tipo>> = {
     imagem: 'texto',
     descricao: 'texto',
     ordem: 'numero',
+    nome: 'texto',
+    mime: 'texto',
+    tamanho: 'numero',
+    partes: 'numero',
+  },
+  anexos_partes: {
+    anexo_id: 'texto',
+    processo_id: 'texto',
+    sessao_id: 'texto',
+    cliente_id: 'texto',
+    ordem: 'numero',
+    dados: 'texto',
   },
 };
 
@@ -201,13 +214,13 @@ export interface RespostaSync {
  */
 export const ORCAMENTO_BYTES = 2_500_000;
 /** Tabelas que vêm em páginas (as que guardam arquivo). */
-export const TABELAS_PAGINADAS: readonly TabelaSyncNome[] = ['anexos'];
+export const TABELAS_PAGINADAS: readonly TabelaSyncNome[] = ['anexos', 'anexos_partes'];
 /**
  * Coluna pesada de cada tabela paginada. Na janela de sobreposição do cursor
  * (registros que o aparelho quase certamente já tem) ela vem sem o valor e com
  * `_sem_arquivo`, para a mesma foto não descer de novo a cada sincronização.
  */
-export const COLUNA_ARQUIVO: Partial<Record<TabelaSyncNome, string>> = { anexos: 'imagem' };
+export const COLUNA_ARQUIVO: Partial<Record<TabelaSyncNome, string>> = { anexos: 'imagem', anexos_partes: 'dados' };
 
 /** Janela de sobreposição do cursor: puxa um pouco antes para não perder escrita concorrente. */
 export const SOBREPOSICAO_MS = 5_000;

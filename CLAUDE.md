@@ -61,10 +61,12 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   Pedido cortado por quantidade e por tamanho (`ORCAMENTO_BYTES`, limite de 4,5 MB da Vercel). Tabelas com arquivo
   (`TABELAS_PAGINADAS`: anexos) descem em páginas (`mais` + `continuacao`), e na janela de sobreposição do cursor
   vêm sem o arquivo (`_sem_arquivo`); o aparelho mantém o seu ou pede inteiro (`buscar`). Testes em `sync.test.ts`.
-- **Anexos do processo** (`components/processos/anexos-processo.tsx`, tabela `anexos`): fotos (galeria; câmera só em
-  tela de toque) reduzidas no aparelho para 1600px WebP (`lib/foto.ts`) e guardadas como data URL, e links; cada um
+- **Anexos do processo** (`components/processos/anexos-processo.tsx`, tabela `anexos`): fotos (galeria, ou câmera:
+  a do aparelho em tela de toque, a webcam dentro do app no computador) reduzidas para 1600px WebP (`lib/foto.ts`) e
+  guardadas como data URL; arquivos (PDF, planilha, documento, até 20 MB, `lib/arquivo.ts`) em partes base64 na
+  tabela `anexos_partes` (paginada na sincronização), montados num Blob para abrir ou baixar; e links. Cada um
   com descrição. Grupo logo depois de Observações; processo novo precisa ser salvo antes. `excluirProcesso` leva os
-  anexos junto (sessão e cliente também).
+  anexos junto (sessão e cliente também); `excluirAnexo` solta o conteúdo pesado.
 - **ROI** (`src/lib/roi.ts`): custo da hora herdado (processo, cliente, padrão), redução e horizonte das
   Configurações, ganho validado, agregados por área/cliente/carteira (`consolidar`, `agregarPor`). Campo vazio
   é "não informado", nunca zero. Mudou a conta, mudou o teste.

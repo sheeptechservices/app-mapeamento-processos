@@ -9,6 +9,10 @@ import {
   Bell,
   Building2,
   Camera,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Paperclip,
   CalendarDays,
   Check,
   ChevronDown,
@@ -131,6 +135,10 @@ export const IconSair = traco(LogOut, 'IconSair', 'avanca');
 /** Upload de logo. */
 export const IconImagem = traco(ImagePlus, 'IconImagem', 'pula');
 export const IconCamera = traco(Camera, 'IconCamera', 'pula');
+export const IconArquivo = traco(FileText, 'IconArquivo', 'pula');
+export const IconPlanilha = traco(FileSpreadsheet, 'IconPlanilha', 'pula');
+export const IconAnexo = traco(Paperclip, 'IconAnexo', 'rabisca');
+export const IconBaixar = traco(Download, 'IconBaixar', 'desce');
 /** Integração (conectar). */
 export const IconLink = traco(Link2, 'IconLink', 'gira');
 export const IconExterno = traco(ArrowUpRight, 'IconExterno', 'diagonal');

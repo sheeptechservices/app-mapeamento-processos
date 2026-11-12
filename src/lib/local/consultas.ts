@@ -97,3 +97,20 @@ export function useAnexos(processoId: string | null | undefined) {
     );
   }, [processoId]);
 }
+
+/** Conteúdo de um anexo do tipo arquivo, montado das partes (null enquanto alguma parte não chegou). */
+export async function lerConteudoAnexo(anexo: { id: string; partes: number | null }): Promise<string[] | null> {
+  const partes = (await banco().anexos_partes.where('anexo_id').equals(anexo.id).toArray())
+    .filter(p => !p.excluido && p.dados)
+    .sort((a, b) => a.ordem - b.ordem);
+  if (!anexo.partes || partes.length < anexo.partes) return null;
+  return partes.map(p => p.dados as string);
+}
+
+/** Quantas partes do arquivo já estão no aparelho (para mostrar que ainda está chegando). */
+export function usePartesNoAparelho(anexoId: string | null | undefined) {
+  return useLiveQuery(async () => {
+    if (!anexoId) return 0;
+    return (await banco().anexos_partes.where('anexo_id').equals(anexoId).toArray()).filter(p => !p.excluido && p.dados).length;
+  }, [anexoId]);
+}

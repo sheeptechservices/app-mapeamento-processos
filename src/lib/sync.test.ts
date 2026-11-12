@@ -4,7 +4,9 @@ import 'fake-indexeddb/auto';
 import { createClient, type Client } from '@libsql/client';
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { partir } from './arquivo';
 import { BancoLocal, usarBanco } from './local/banco';
+import { lerConteudoAnexo } from './local/consultas';
 import {
   atualizar,
   criarAnexo,
@@ -14,6 +16,7 @@ import {
   criarSessao,
   definirAutor,
   excluir,
+  excluirAnexo,
   excluirProcesso,
 } from './local/repo';
 import { rodadaSync, type Transporte } from './local/sync';
@@ -143,6 +146,35 @@ describe('sincronização entre aparelhos', () => {
     passo();
     await sync(b);
     expect(await b.db.anexos.get(foto.id)).toMatchObject({ imagem: 'data:image/webp;base64,QUJD', _pendente: 0 });
+  });
+
+  it('arquivo grande (PDF, planilha) vai em partes e chega inteiro no outro aparelho', async () => {
+    const a = aparelho(ORG);
+    const b = aparelho(ORG_B);
+    const lev = await em(a, () => clienteComSessao('Distribuidora'));
+    const p = await em(a, () => criarProcesso(lev.id, null, { titulo: 'Fechamento de caixa' }));
+    // Arquivo de uns 6 MB em base64, partido como o app parte.
+    const base64 = Buffer.from(new Uint8Array(4_500_000).map((_, i) => i % 251)).toString('base64');
+    const partes = partir(base64);
+    const anexo = await em(a, () =>
+      criarAnexo(p.id, { tipo: 'arquivo', nome: 'caixa.xlsx', mime: 'application/vnd.ms-excel', tamanho: 4_500_000 }, partes),
+    );
+    passo();
+    await sync(a);
+    passo();
+    await sync(b);
+    expect(await b.db.anexos.get(anexo.id)).toMatchObject({ tipo: 'arquivo', nome: 'caixa.xlsx', partes: partes.length });
+    const conteudo = await em(b, () => lerConteudoAnexo({ id: anexo.id, partes: partes.length }));
+    expect(conteudo?.join('')).toBe(base64);
+
+    // Excluir o anexo leva as partes e solta o conteúdo.
+    passo();
+    await em(a, () => excluirAnexo(anexo.id));
+    await sync(a);
+    passo();
+    await sync(b);
+    const restantes = await b.db.anexos_partes.where('anexo_id').equals(anexo.id).toArray();
+    expect(restantes.every(r => r.excluido === 1 && !r.dados)).toBe(true);
   });
 
   it('excluir o processo leva os anexos junto, nos dois aparelhos', async () => {

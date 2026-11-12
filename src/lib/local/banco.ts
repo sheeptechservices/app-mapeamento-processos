@@ -8,6 +8,7 @@
 import Dexie, { type EntityTable, type Table } from 'dexie';
 import type {
   Anexo,
+  AnexoParte,
   Area,
   Captura,
   Cliente,
@@ -38,6 +39,7 @@ export class BancoLocal extends Dexie {
   roteiro_perguntas!: EntityTable<RoteiroPergunta, 'id'>;
   capturas!: EntityTable<Captura, 'id'>;
   anexos!: EntityTable<Anexo, 'id'>;
+  anexos_partes!: EntityTable<AnexoParte, 'id'>;
   meta!: Table<Meta, string>;
 
   constructor(nome = 'sheep-mapeamento') {
@@ -55,6 +57,8 @@ export class BancoLocal extends Dexie {
     });
     // Anexos do processo (fotos e links).
     this.version(2).stores({ anexos: 'id, processo_id, sessao_id, cliente_id, _pendente' });
+    // Partes do conteúdo de anexos do tipo arquivo (PDF, planilha, documento).
+    this.version(3).stores({ anexos_partes: 'id, anexo_id, processo_id, sessao_id, cliente_id, _pendente' });
   }
 
   tabela(nome: TabelaSync) {

@@ -5,6 +5,7 @@ import {
   IA_PADRAO,
   SETORES_PADRAO,
   type Anexo,
+  type AnexoParte,
   type Area,
   type Captura,
   type Cliente,
@@ -77,6 +78,7 @@ type TipoDe<N extends Tabela> = {
   roteiro_perguntas: RoteiroPergunta;
   capturas: Captura;
   anexos: Anexo;
+  anexos_partes: AnexoParte;
 }[N];
 
 async function inserir<T extends Registro>(tabela: Tabela, reg: T) {
@@ -218,6 +220,7 @@ export async function excluirCliente(id: string) {
   await Promise.all(sessoes.map(excluirSessao));
   await excluirFilhas('processos', 'cliente_id', id);
   await excluirFilhas('anexos', 'cliente_id', id);
+  await excluirFilhas('anexos_partes', 'cliente_id', id);
   await excluir('clientes', id);
 }
 
@@ -254,7 +257,7 @@ export async function criarSessao(cliente_id: string, dados: Partial<Dados<Sessa
 
 export async function excluirSessao(id: string) {
   await Promise.all(
-    (['areas', 'processos', 'anexos', 'roteiro_blocos', 'roteiro_perguntas', 'capturas'] as const).map(t =>
+    (['areas', 'processos', 'anexos', 'anexos_partes', 'roteiro_blocos', 'roteiro_perguntas', 'capturas'] as const).map(t =>
       excluirFilhas(t, 'sessao_id', id),
     ),
   );
@@ -346,17 +349,22 @@ export async function criarProcesso(sessao_id: string, area_id: string | null, d
 /** Exclui o processo e os anexos dele. */
 export async function excluirProcesso(id: string) {
   await excluirFilhas('anexos', 'processo_id', id);
+  await excluirFilhas('anexos_partes', 'processo_id', id);
   await excluir('processos', id);
 }
 
 // ─── Anexos ───────────────────────────────────────────────────────────────
 
-/** Novo anexo (foto ou link) no fim da lista do processo. */
-export async function criarAnexo(processo_id: string, dados: Pick<Anexo, 'tipo'> & Partial<Pick<Anexo, 'url' | 'imagem' | 'descricao'>>) {
+/** Novo anexo (foto, link ou arquivo) no fim da lista do processo. Arquivo: o conteúdo vem em `conteudo` (partes base64). */
+export async function criarAnexo(
+  processo_id: string,
+  dados: Pick<Anexo, 'tipo'> & Partial<Pick<Anexo, 'url' | 'imagem' | 'descricao' | 'nome' | 'mime' | 'tamanho'>>,
+  conteudo: string[] = [],
+) {
   const processo = await banco().processos.get(processo_id);
   if (!processo) throw new Error('processo não encontrado');
   const ordem = await banco().anexos.where('processo_id').equals(processo_id).count();
-  return inserir(
+  const anexo = await inserir(
     'anexos',
     novoRegistro<Anexo>({
       processo_id,
@@ -367,8 +375,33 @@ export async function criarAnexo(processo_id: string, dados: Pick<Anexo, 'tipo'>
       imagem: dados.imagem ?? null,
       descricao: dados.descricao ?? null,
       ordem,
+      nome: dados.nome ?? null,
+      mime: dados.mime ?? null,
+      tamanho: dados.tamanho ?? null,
+      partes: conteudo.length || null,
     }),
   );
+  for (const [i, parte] of conteudo.entries()) {
+    await inserir(
+      'anexos_partes',
+      novoRegistro<AnexoParte>({
+        anexo_id: anexo.id,
+        processo_id,
+        sessao_id: processo.sessao_id,
+        cliente_id: processo.cliente_id,
+        ordem: i,
+        dados: parte,
+      }),
+    );
+  }
+  return anexo;
+}
+
+/** Exclui o anexo e solta o conteúdo pesado (foto ou partes do arquivo) para não ocupar espaço à toa. */
+export async function excluirAnexo(id: string) {
+  const partes = await banco().anexos_partes.where('anexo_id').equals(id).primaryKeys();
+  await Promise.all(partes.map(p => atualizar('anexos_partes', p, { excluido: 1, dados: null } as never)));
+  await atualizar('anexos', id, { excluido: 1, imagem: null } as never);
 }
 
 // ─── Roteiro ──────────────────────────────────────────────────────────────

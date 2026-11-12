@@ -179,13 +179,31 @@ export interface Anexo extends Registro {
   /** Repetidos do processo para a exclusão em cascata de sessão e cliente. */
   sessao_id: string;
   cliente_id: string;
-  tipo: 'foto' | 'link';
+  tipo: 'foto' | 'link' | 'arquivo';
   /** Endereço do link (tipo link). */
   url: string | null;
   /** Foto reduzida em data URL (tipo foto). */
   imagem: string | null;
   descricao: string | null;
   ordem: number;
+  /** Arquivo (PDF, planilha, documento): nome original, tipo, tamanho em bytes e em quantas partes foi guardado. */
+  nome: string | null;
+  mime: string | null;
+  tamanho: number | null;
+  partes: number | null;
+}
+
+/**
+ * Pedaço do conteúdo de um anexo do tipo arquivo (base64). Arquivo grande vai
+ * em várias partes para cada uma caber num pedido de sincronização.
+ */
+export interface AnexoParte extends Registro {
+  anexo_id: string;
+  processo_id: string;
+  sessao_id: string;
+  cliente_id: string;
+  ordem: number;
+  dados: string | null;
 }
 
 // ─── Configurações da organização ─────────────────────────────────────────
