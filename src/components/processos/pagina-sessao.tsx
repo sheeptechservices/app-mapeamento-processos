@@ -407,6 +407,18 @@ export function PaginaSessao({
                             </span>
                           )}
                         </button>
+                        {/* Inserir processo junto da tabela (a lista vazia já tem o próprio botão). */}
+                        {podeEditar && todos.length > 0 && (
+                          <button
+                            type="button"
+                            title="Novo processo"
+                            onClick={() => acoes.novoProcesso(sessao)}
+                            className={cn(estiloBotao({ variante: 'primario' }), 'shrink-0 @max-lg:w-[var(--toque)] @max-lg:px-0')}
+                          >
+                            <IconAdicionar size={18} />
+                            <span className="@max-lg:sr-only">Novo processo</span>
+                          </button>
+                        )}
                       </div>
 
                       {etiquetas.length > 0 && (
