@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useSyncExternalStore } from 'react';
+import { MODO_ESCURO_LIBERADO } from '@/lib/tema-config';
 
 export type PreferenciaTema = 'claro' | 'escuro' | 'sistema';
 
@@ -18,7 +19,7 @@ function lerPreferencia(): PreferenciaTema {
 }
 
 function aplicar(p: PreferenciaTema) {
-  const escuro = p === 'escuro' || (p === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches);
+  const escuro = MODO_ESCURO_LIBERADO && (p === 'escuro' || (p === 'sistema' && matchMedia('(prefers-color-scheme: dark)').matches));
   document.documentElement.dataset.theme = escuro ? 'dark' : 'light';
 }
 
@@ -45,7 +46,7 @@ export function usePreferenciaTema() {
 export function SeguirTemaDoSistema() {
   const p = usePreferenciaTema();
   useEffect(() => {
-    if (p !== 'sistema') return;
+    if (!MODO_ESCURO_LIBERADO || p !== 'sistema') return;
     const mq = matchMedia('(prefers-color-scheme: dark)');
     const mudou = () => aplicar('sistema');
     mq.addEventListener('change', mudou);

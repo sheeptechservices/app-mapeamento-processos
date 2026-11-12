@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { IconAdicionar, IconExcluir, IconLink } from '@/components/icons';
 import { useSessao } from '@/components/sessao';
 import { definirTema, usePreferenciaTema, type PreferenciaTema } from '@/components/tema';
+import { MODO_ESCURO_LIBERADO } from '@/lib/tema-config';
 import { Avatar } from '@/components/ui/avatar';
 import { Confirmar } from '@/components/ui/confirmar';
 import { Grupo, Linha, LinhaInterruptor, LinhaNumero, LinhaTexto, ListaEscolha, Segmentado } from '@/components/ui/linhas';
@@ -44,7 +45,8 @@ const INTEGRACOES = [
   { nome: 'WhatsApp', dica: 'Enviar o resumo do relatório' },
 ];
 
-const botaoRemover = 'foco grid size-9 place-items-center rounded-pilula text-tinta-3 transition-colors hover:bg-risco-fundo hover:text-risco';
+const botaoRemover =
+  'foco grid size-9 place-items-center rounded-pilula text-tinta-3 transition-colors hover:bg-risco-fundo hover:text-risco';
 
 /** Configurações da organização: só administrador edita; os demais veem. */
 function useConfiguracao(cfg: Configuracoes | null) {
@@ -62,7 +64,11 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
   const { c, mudar } = useConfiguracao(cfg ?? null);
   const equipe = useEquipe();
   const tema = usePreferenciaTema();
-  const ultimaSync = useSyncExternalStore(assinarSync, () => estadoSync().ultima, () => null);
+  const ultimaSync = useSyncExternalStore(
+    assinarSync,
+    () => estadoSync().ultima,
+    () => null,
+  );
   const admin = usuario?.papel === 'admin';
   const [novoSetor, setNovoSetor] = useState('');
   const [removerModelo, setRemoverModelo] = useState<string | null>(null);
@@ -112,7 +118,13 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
                   adicionarSetor();
                 }}
               >
-                <input className="campo !rounded-pilula" value={novoSetor} onChange={e => setNovoSetor(e.target.value)} placeholder="Novo setor" aria-label="Novo setor" />
+                <input
+                  className="campo !rounded-pilula"
+                  value={novoSetor}
+                  onChange={e => setNovoSetor(e.target.value)}
+                  placeholder="Novo setor"
+                  aria-label="Novo setor"
+                />
                 <button
                   type="submit"
                   disabled={!novoSetor.trim()}
@@ -127,7 +139,17 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
                   {c.setores.map(s => (
                     <div key={s} className="flex min-h-[52px] items-center gap-3 px-4">
                       <span className="flex-1 text-[15px]">{s}</span>
-                      <button type="button" aria-label={`Remover ${s}`} onClick={() => mudar('setores', c.setores.filter(x => x !== s))} className={botaoRemover}>
+                      <button
+                        type="button"
+                        aria-label={`Remover ${s}`}
+                        onClick={() =>
+                          mudar(
+                            'setores',
+                            c.setores.filter(x => x !== s),
+                          )
+                        }
+                        className={botaoRemover}
+                      >
                         <IconExcluir size={17} />
                       </button>
                     </div>
@@ -183,7 +205,12 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
                   <span className="flex-1 text-[15px]">{m.segmento}</span>
                   <span className="text-[13px] text-tinta-2">{m.blocos.reduce((s, b) => s + b.perguntas.length, 0)} perguntas</span>
                   {admin && (
-                    <button type="button" aria-label={`Remover modelo de ${m.segmento}`} onClick={() => setRemoverModelo(m.segmento)} className={botaoRemover}>
+                    <button
+                      type="button"
+                      aria-label={`Remover modelo de ${m.segmento}`}
+                      onClick={() => setRemoverModelo(m.segmento)}
+                      className={botaoRemover}
+                    >
                       <IconExcluir size={17} />
                     </button>
                   )}
@@ -199,7 +226,9 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
             <ListaEscolha
               opcoes={SEGMENTOS.filter(s => !c.modelos_roteiro.some(m => m.segmento === s)).map(s => ({ valor: s, rotulo: s }))}
               selecionados={[]}
-              aoMudar={([seg]) => seg && mudar('modelos_roteiro', [...c.modelos_roteiro, { segmento: seg, blocos: structuredClone(ROTEIRO_PADRAO) }])}
+              aoMudar={([seg]) =>
+                seg && mudar('modelos_roteiro', [...c.modelos_roteiro, { segmento: seg, blocos: structuredClone(ROTEIRO_PADRAO) }])
+              }
             />
           ),
         },
@@ -229,8 +258,17 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
       <Painel aberto={aberto} aoFechar={aoFechar} titulo="Ajustes" subtelas={subtelas}>
         {c ? (
           <fieldset disabled={!admin} className="contents">
-            <Grupo titulo="Padrões de cálculo" rodape={admin ? 'Valem quando o processo e o cliente não informam os próprios valores.' : 'Só administradores alteram.'}>
-              <LinhaNumero rotulo="Custo da hora padrão" prefixo="R$" decimais valor={c.custo_hora_padrao} aoMudar={v => mudar('custo_hora_padrao', v)} />
+            <Grupo
+              titulo="Padrões de cálculo"
+              rodape={admin ? 'Valem quando o processo e o cliente não informam os próprios valores.' : 'Só administradores alteram.'}
+            >
+              <LinhaNumero
+                rotulo="Custo da hora padrão"
+                prefixo="R$"
+                decimais
+                valor={c.custo_hora_padrao}
+                aoMudar={v => mudar('custo_hora_padrao', v)}
+              />
               <LinhaNumero
                 rotulo="Redução esperada padrão"
                 sufixo="%"
@@ -253,11 +291,21 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
               <Linha rotulo="Setores" valor={`${c.setores.length}`} subtela="setores" />
               <Linha rotulo="Status" valor="4 etapas" subtela="status" />
               <Linha rotulo="Frequências" valor={`${FREQUENCIAS.length}`} subtela="frequencias" />
-              <Linha rotulo="Modelos de roteiro" valor={c.modelos_roteiro.length ? `${c.modelos_roteiro.length} por segmento` : 'Padrão Sheep'} subtela="roteiros" />
+              <Linha
+                rotulo="Modelos de roteiro"
+                valor={c.modelos_roteiro.length ? `${c.modelos_roteiro.length} por segmento` : 'Padrão Sheep'}
+                subtela="roteiros"
+              />
             </Grupo>
             <Grupo titulo="IA">
               {(Object.keys(ROTULOS_IA) as (keyof FlagsIA)[]).map(k => (
-                <LinhaInterruptor key={k} rotulo={ROTULOS_IA[k].rotulo} dica={ROTULOS_IA[k].dica} ligado={ia[k]} aoMudar={v => mudar('ia', { ...ia, [k]: v })} />
+                <LinhaInterruptor
+                  key={k}
+                  rotulo={ROTULOS_IA[k].rotulo}
+                  dica={ROTULOS_IA[k].dica}
+                  ligado={ia[k]}
+                  aoMudar={v => mudar('ia', { ...ia, [k]: v })}
+                />
               ))}
             </Grupo>
           </fieldset>
@@ -307,9 +355,11 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
           )}
         </Grupo>
 
-        <Grupo titulo="Aparência">
-          <Segmentado rotulo="Tema" permitirLimpar={false} opcoes={TEMAS} valor={tema} aoMudar={v => v && definirTema(v)} />
-        </Grupo>
+        {MODO_ESCURO_LIBERADO && (
+          <Grupo titulo="Aparência">
+            <Segmentado rotulo="Tema" permitirLimpar={false} opcoes={TEMAS} valor={tema} aoMudar={v => v && definirTema(v)} />
+          </Grupo>
+        )}
         <Grupo titulo="Conta">
           <Linha rotulo="Sair" valor={usuario?.email} aoClicar={() => setSaindo(true)} />
         </Grupo>
@@ -322,7 +372,13 @@ export function PainelAjustes({ aberto, aoFechar }: { aberto: boolean; aoFechar:
         titulo={`Remover o modelo de ${removerModelo}?`}
         texto="Sessões que já usaram o modelo continuam com o roteiro delas. As próximas usam o padrão Sheep."
         rotuloConfirmar="Remover"
-        aoConfirmar={() => c && mudar('modelos_roteiro', c.modelos_roteiro.filter(m => m.segmento !== removerModelo))}
+        aoConfirmar={() =>
+          c &&
+          mudar(
+            'modelos_roteiro',
+            c.modelos_roteiro.filter(m => m.segmento !== removerModelo),
+          )
+        }
       />
       <Confirmar
         aberto={saindo}

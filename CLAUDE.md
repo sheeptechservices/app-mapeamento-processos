@@ -67,6 +67,8 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   positiva, aba ativa, ícone de IA. Para texto sobre fundo claro use `verde-tinta` (o lima puro não tem
   contraste); fundo suave `verde-suave`. Classes: `.card`, `.card-clicavel`, `.card-ia` + `.esfera`, `.barra`
   (`.verde`), `.barra-dupla`, `.titulo-pagina`, `.entra`, `.cascata`, `.troca`. Selos em `ui/selo.tsx`.
+- **Modo escuro bloqueado** (decisão do usuário em 11/11/2026): `MODO_ESCURO_LIBERADO = false` em `lib/tema-config.ts`
+  deixa o app sempre claro e esconde Tema em Ajustes. Os tokens do escuro seguem em `globals.css`; não liberar sem o usuário pedir.
 - **Logo oficial** em `public/marca/` (copiada do Sheep Indica): `sheep-logo.png` (completa), `sheep-carneiro.png`
   (símbolo), `sheep-carneiro-branco.png` (ícone do app). Use `<LogoSheep>` (`ui/logo.tsx`); a classe
   `.logo-sheep` inverte para branco no tema escuro.

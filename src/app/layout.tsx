@@ -1,3 +1,4 @@
+import { MODO_ESCURO_LIBERADO } from '@/lib/tema-config';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import { RegistrarSW } from '@/components/registrar-sw';
@@ -18,15 +19,20 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f7f7f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#0b0b0c' },
-  ],
+  themeColor: MODO_ESCURO_LIBERADO
+    ? [
+        { media: '(prefers-color-scheme: light)', color: '#f7f7f7' },
+        { media: '(prefers-color-scheme: dark)', color: '#0b0b0c' },
+      ]
+    : '#f7f7f7',
 };
 
 // Aplica o tema antes da primeira pintura. 'sistema' (ou nada salvo) segue o
-// aparelho; a troca em tempo real fica com o componente de tema.
-const scriptTema = `try{var t=localStorage.getItem('tema');if(t!=='claro'&&t!=='escuro')t=matchMedia('(prefers-color-scheme: dark)').matches?'escuro':'claro';document.documentElement.dataset.theme=t==='escuro'?'dark':'light'}catch(e){}`;
+// aparelho; a troca em tempo real fica com o componente de tema. Com o modo
+// escuro bloqueado (lib/tema-config.ts), é sempre claro.
+const scriptTema = !MODO_ESCURO_LIBERADO
+  ? `document.documentElement.dataset.theme='light'`
+  : `try{var t=localStorage.getItem('tema');if(t!=='claro'&&t!=='escuro')t=matchMedia('(prefers-color-scheme: dark)').matches?'escuro':'claro';document.documentElement.dataset.theme=t==='escuro'?'dark':'light'}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
