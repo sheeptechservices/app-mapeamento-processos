@@ -29,8 +29,6 @@ import { agregarPor, consolidar } from '@/lib/roi';
 import { contarEtapas } from '@/lib/sessao-resumo';
 import { cn } from '@/lib/cn';
 
-const CHAVE_EXPANDIDO = 'sl_sessao_expandida';
-
 const CONSULTA_ESTREITO = '(max-width: 619px)';
 function assinarEstreito(aviso: () => void) {
   const m = matchMedia(CONSULTA_ESTREITO);
@@ -38,14 +36,6 @@ function assinarEstreito(aviso: () => void) {
   return () => m.removeEventListener('change', aviso);
 }
 const eEstreito = () => matchMedia(CONSULTA_ESTREITO).matches;
-
-function lerExpandido() {
-  try {
-    return localStorage.getItem(CHAVE_EXPANDIDO) === '1';
-  } catch {
-    return false;
-  }
-}
 
 /** Indicador da sessão: rótulo, número que corre e uma linha de apoio. */
 function Kpi({ rotulo, valor, apoio, destaque }: { rotulo: string; valor: ReactNode; apoio?: ReactNode; destaque?: boolean }) {
@@ -93,17 +83,14 @@ export function PaginaSessao({
 }) {
   const [filtros, setFiltros] = useState<FiltrosProcesso>(filtrosIniciais ?? FILTROS_VAZIOS);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
-  const [expandido, setExpandido] = useState(lerExpandido);
-
-  const alternarExpandido = () => {
-    const novo = !expandido;
-    setExpandido(novo);
-    try {
-      localStorage.setItem(CHAVE_EXPANDIDO, novo ? '1' : '0');
-    } catch {
-      /* sem armazenamento: vale nesta visita */
-    }
-  };
+  // O quadro sempre abre reduzido, mesmo que tenha sido fechado expandido.
+  const [expandido, setExpandido] = useState(false);
+  const [abertoAntes, setAbertoAntes] = useState(aberto);
+  if (aberto !== abertoAntes) {
+    setAbertoAntes(aberto);
+    if (aberto) setExpandido(false);
+  }
+  const alternarExpandido = () => setExpandido(e => !e);
 
   const reduzido = useReducedMotion();
   // Celular: o quadro é folha de baixo e fecha ao arrastar para baixo.

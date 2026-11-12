@@ -161,6 +161,28 @@ body {
   textarea {
     font: inherit;
   }
+
+  /* Barra de rolagem fina e discreta em todo o app: polegar em tinta bem
+     clara, trilho transparente; escurece um pouco ao passar o mouse na área. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--tinta) 16%, transparent) transparent;
+  }
+  *:hover {
+    scrollbar-color: color-mix(in oklab, var(--tinta) 30%, transparent) transparent;
+  }
+  /* Safari antigo, que não conhece scrollbar-width/scrollbar-color. */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--tinta) 18%, transparent);
+    border-radius: 999px;
+  }
 }
 
 /* ─── Tipografia v6 ─────────────────────────────────────────────────── */
