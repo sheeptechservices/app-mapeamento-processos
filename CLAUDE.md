@@ -22,8 +22,8 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   conta) e `CabecalhoPagina`. Ajustes em `components/ajustes/painel-ajustes.tsx` (sub-telas: setores, status,
   frequências, modelos de roteiro, membro da equipe).
 - **Mapa** (`src/lib/mapa.ts` monta a árvore, com teste; `components/processos/arvore-mapa.tsx` desenha): pastas
-  de cliente abrem com `.revelar`, lembradas no aparelho (`sl_mapa_abertas`). Cada sessão é um cartão (resumo, barra
-  das etapas, pasta que entreabre no hover e fica aberta com o quadro) que abre o **quadro da sessão** por cima do
+  de cliente abrem com `.revelar`, lembradas no aparelho (`sl_mapa_abertas`). Cada sessão é um cartão (resumo sem gráfico,
+  pasta que entreabre no hover e fica aberta com o quadro) que abre o **quadro da sessão** por cima do
   mapa (`?s=`, `components/processos/pagina-sessao.tsx`, Radix Dialog z-40; painéis de processo z-50 por cima):
   indicadores e gráficos de **perfil** dos processos, não de ganho (é mapa para o relatório de diagnóstico: `lib/perfil.ts`
   com teste): por prioridade, por setor (barras com cor por setor), como é feito hoje (donuts), frequência (colunas)
@@ -35,7 +35,7 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   do quadro até as bordas (`.quadro-sessao`/`.expandido`); Esc recolhe e depois fecha. No celular é folha de baixo
   em tela cheia. Abre por push (o voltar do celular fecha o quadro). Com busca ou filtro no mapa, os processos
   achados aparecem sob o cartão e a busca segue para a página da sessão. "Em risco" é filtro.
-  Cores das etapas nos gráficos: rampa ordinal `--etapa-1..5` (validada com o validador de paletas).
+  Rampa ordinal verde `--etapa-1..5` (validada com o validador de paletas), usada nos donuts.
   Gráficos têm dica da casa (`ui/dica.tsx`: `AreaDica` + `AlvoDica`, balão escuro, toque mostra/esconde; `.marcas` esmaece
   as outras marcas). Nada de `title` nativo em gráfico, exceto a barra compacta do cartão (o cartão inteiro é link).
 - **Atualização sem atrapalhar** (`components/aviso-versao.tsx`, `lib/versao.ts`, `/api/versao`): o app compara a

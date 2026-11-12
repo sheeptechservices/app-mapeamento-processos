@@ -3,7 +3,6 @@
 import { AnimatePresence } from 'motion/react';
 import type { PointerEvent } from 'react';
 import { IconAdicionar, IconEditar, IconExcluir, IconPasta, IconPastaAberta, IconSeta } from '@/components/icons';
-import { BarraEtapas } from '@/components/processos/graficos-sessao';
 import { Acao, CabecalhoTabela, LinhaProcesso, MenuAcoes, revelaAcoes } from '@/components/processos/lista-processos';
 import { Avatar } from '@/components/ui/avatar';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
@@ -14,7 +13,6 @@ import { dataCurta, reais, reaisCompacto } from '@/lib/formato';
 import type { Carteira } from '@/lib/local/carteira';
 import type { PastaCliente } from '@/lib/mapa';
 import { consolidar } from '@/lib/roi';
-import { contarEtapas } from '@/lib/sessao-resumo';
 import { cn } from '@/lib/cn';
 
 export interface AcoesMapa {
@@ -206,9 +204,6 @@ export function ArvoreMapa({
                                           </>
                                         )}
                                       </span>
-                                      {todos.length > 0 && (
-                                        <BarraEtapas compacta contagem={contarEtapas(todos)} cfg={carteira.config} className="mt-2 max-w-[260px]" />
-                                      )}
                                     </span>
                                   </button>
                                   <span className="hidden shrink-0 tablet:block">
