@@ -97,7 +97,7 @@ describe('repo local', () => {
     const area = await criarArea(sessao.id, { nome: 'Fiscal' });
     const p = await criarProcesso(sessao.id, area.id);
     await excluirArea(area.id);
-    expect((await banco().processos.get(p.id))).toMatchObject({ area_id: null, excluido: 0 });
+    expect(await banco().processos.get(p.id)).toMatchObject({ area_id: null, excluido: 0 });
   });
 
   it('excluir sessão leva áreas, processos e roteiro junto', async () => {

@@ -8,7 +8,15 @@ import { useClientes, useConfiguracoes, useProcessos, useSessoes, useTodasAreas 
 /** Configurações com os padrões preenchidos (antes da primeira sincronização ainda não existe a linha). */
 export type ConfigEfetiva = Pick<
   Configuracoes,
-  'custo_hora_padrao' | 'reducao_padrao_pct' | 'horizonte_meses' | 'setores' | 'segmentos' | 'sistemas' | 'rotulos_status' | 'rotulos_frequencia' | 'ia'
+  | 'custo_hora_padrao'
+  | 'reducao_padrao_pct'
+  | 'horizonte_meses'
+  | 'setores'
+  | 'segmentos'
+  | 'sistemas'
+  | 'rotulos_status'
+  | 'rotulos_frequencia'
+  | 'ia'
 >;
 
 export function configEfetiva(cfg: Configuracoes | null | undefined): ConfigEfetiva {
