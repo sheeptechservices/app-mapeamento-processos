@@ -181,7 +181,8 @@ for (const s of sessoes) {
       gargalos: gargalo,
       eisenhower: pesado([[1, 15], [2, 35], [3, 35], [4, 15]]),
       origem_numero: pesado([['cliente', 50], ['medido', 20], ['estimativa', 30]]),
-      perda_mes: sorte() < 0.2 ? entre(5, 60) * 100 : null,
+      // (sem perda/risco: o campo saiu do formulário em 11/11/2026)
+      perda_mes: null,
       em_risco: trabalho && sorte() < 0.25,
       ganho_validado_pct: status === 'automatizado' ? pesado([[100, 50], [80, 30], [60, 20]]) : status === 'em_execucao' && sorte() < 0.4 ? 30 : null,
       responsaveis: [],

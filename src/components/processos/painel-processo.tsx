@@ -400,14 +400,6 @@ export function PainelProcesso({
               placeholder={custoHerdado != null ? `Herdado: ${reais(custoHerdado, true)}` : 'Não informado'}
             />
             <LinhaNumero
-              rotulo="Perda ou risco"
-              prefixo="R$"
-              sufixo="/mês"
-              decimais
-              valor={dados.perda_mes}
-              aoMudar={v => mudar('perda_mes', v)}
-            />
-            <LinhaNumero
               rotulo="Redução esperada"
               sufixo="%"
               valor={dados.reducao_pct}
