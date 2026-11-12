@@ -33,6 +33,8 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   Cores das etapas nos gráficos: rampa ordinal `--etapa-1..5` (validada com o validador de paletas).
 - **Sobreposição** (`src/components/ui/painel.tsx` + `linhas.tsx`): todo formulário e filtro é um `Painel`
   (lateral 440px / bottom sheet) com `Grupo` e `Linha*`; sub-telas declaradas em `subtelas` (sempre atuais).
+  No celular, folha de baixo fecha ao arrastar para baixo (`useArrastarParaFechar` em `ui/arrastar-fechar.ts`;
+  com o conteúdo rolado, o gesto rola; `data-sem-arrastar` desliga numa área). Vale no `Painel` e no quadro da sessão.
   Exclusão sempre com `Confirmar` (`ui/confirmar.tsx`, botão vermelho).
 - **Local-first** (`src/lib/local/`): `banco.ts` (Dexie `sheep-mapeamento`), `repo.ts` (escritas com carimbo por
   campo, exclusão em cascata de cliente e sessão), `consultas.ts` (leituras reativas), `carteira.ts`

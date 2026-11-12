@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Dialog } from 'radix-ui';
-import { useState, type ReactNode } from 'react';
+import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import {
   IconAdicionar,
   IconAnterior,
@@ -16,6 +16,7 @@ import {
 import { BarraEtapas, GanhoPorSetor } from '@/components/processos/graficos-sessao';
 import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components/processos/lista-processos';
 import { ORIGENS_FILTRO, PainelFiltros } from '@/components/processos/painel-filtros';
+import { useArrastarParaFechar } from '@/components/ui/arrastar-fechar';
 import { Avatar } from '@/components/ui/avatar';
 import { estiloBotao } from '@/components/ui/botao';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
@@ -29,6 +30,14 @@ import { contarEtapas } from '@/lib/sessao-resumo';
 import { cn } from '@/lib/cn';
 
 const CHAVE_EXPANDIDO = 'sl_sessao_expandida';
+
+const CONSULTA_ESTREITO = '(max-width: 619px)';
+function assinarEstreito(aviso: () => void) {
+  const m = matchMedia(CONSULTA_ESTREITO);
+  m.addEventListener('change', aviso);
+  return () => m.removeEventListener('change', aviso);
+}
+const eEstreito = () => matchMedia(CONSULTA_ESTREITO).matches;
 
 function lerExpandido() {
   try {
@@ -97,6 +106,9 @@ export function PaginaSessao({
   };
 
   const reduzido = useReducedMotion();
+  // Celular: o quadro é folha de baixo e fecha ao arrastar para baixo.
+  const estreito = useSyncExternalStore(assinarEstreito, eEstreito, () => false);
+  const { prender: prenderFolha, y: yFolha } = useArrastarParaFechar<HTMLElement>(aberto && estreito, aoVoltar);
 
   const cliente = carteira.clientePorId.get(sessao.cliente_id);
   const setorDe = (p: Processo) => (p.area_id ? (carteira.areaPorId.get(p.area_id)?.nome ?? null) : null);
@@ -151,6 +163,8 @@ export function PaginaSessao({
                 }}
               >
                 <motion.section
+                  ref={prenderFolha}
+                  style={{ y: yFolha }}
                   initial={reduzido ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.985 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={reduzido ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.985 }}

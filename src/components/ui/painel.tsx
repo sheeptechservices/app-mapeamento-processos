@@ -14,6 +14,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Dialog } from 'radix-ui';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { IconFechar, IconVoltar } from '@/components/icons';
+import { useArrastarParaFechar } from '@/components/ui/arrastar-fechar';
 import { cn } from '@/lib/cn';
 
 export interface SubTela {
@@ -67,6 +68,8 @@ export function Painel({
   descricao?: string;
 }) {
   const largo = useLargo();
+  // Celular: a folha fecha ao arrastar para baixo.
+  const { prender: prenderFolha, y: yFolha } = useArrastarParaFechar<HTMLDivElement>(aberto && !largo, aoFechar);
   const reduzido = useReducedMotion();
   const [pilha, setPilha] = useState<string[]>([]);
   const [direcao, setDirecao] = useState(1);
@@ -121,6 +124,8 @@ export function Painel({
               }}
             >
               <motion.div
+                ref={prenderFolha}
+                style={{ y: yFolha }}
                 {...entrada}
                 transition={mola}
                 className={cn(
