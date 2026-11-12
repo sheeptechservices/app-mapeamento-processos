@@ -1,13 +1,13 @@
 'use client';
 
-import { DropdownMenu } from 'radix-ui';
+import { DropdownMenu, Tooltip } from 'radix-ui';
 import type { ReactNode } from 'react';
 import { IconExcluir, IconMais } from '@/components/icons';
 import { SeloRisco, SeloStatus } from '@/components/selos';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { ItemVivo, Pulso } from '@/components/ui/vivo';
 import type { Processo } from '@/lib/dominio';
-import { completude } from '@/lib/completude';
+import { CAMPOS_COMPLETUDE, completude } from '@/lib/completude';
 import type { Carteira } from '@/lib/local/carteira';
 import { cn } from '@/lib/cn';
 
@@ -141,14 +141,21 @@ export function LinhaProcesso({
         <span className="hidden w-[112px] shrink-0 tablet:block @max-xl:!hidden">
           {p.em_risco ? <SeloRisco /> : <SeloStatus status={p.status} cfg={carteira.config} />}
         </span>
-        <span className="w-[86px] shrink-0 text-right" title={cheio ? 'Cadastro completo' : `Falta: ${c.faltando.join(', ')}`}>
-          <span className={cn('numeros block text-[14px]', cheio && 'text-verde-tinta')}>
-            <NumeroAnimado valor={c.fracao} formatar={v => `${Math.round(v * 100)}%`} />
-          </span>
-          <span className={cn('barra mt-1.5 ml-auto block w-[64px]', cheio && 'verde')}>
-            <span style={{ width: `${Math.max(c.fracao * 100, 4)}%` }} />
-          </span>
-        </span>
+        <DicaCompletude faltando={c.faltando} total={CAMPOS_COMPLETUDE.length}>
+          <button
+            type="button"
+            onClick={() => acoes.abrirProcesso(p)}
+            aria-label={cheio ? 'Cadastro completo' : `Cadastro ${Math.round(c.fracao * 100)}% preenchido. Falta: ${c.faltando.join(', ')}`}
+            className="foco relative z-10 w-[86px] shrink-0 cursor-default rounded-lg py-1 text-right"
+          >
+            <span className={cn('numeros block text-[14px]', cheio && 'text-verde-tinta')}>
+              <NumeroAnimado valor={c.fracao} formatar={v => `${Math.round(v * 100)}%`} />
+            </span>
+            <span className={cn('barra mt-1.5 ml-auto block w-[64px]', cheio && 'verde')}>
+              <span style={{ width: `${Math.max(c.fracao * 100, 4)}%` }} />
+            </span>
+          </button>
+        </DicaCompletude>
         {podeEditar && (
           // Sem lápis: tocar na linha já abre o processo para editar.
           <span className={cn(revelaAcoes, 'w-[38px] justify-end @max-md:!hidden')}>
@@ -159,6 +166,51 @@ export function LinhaProcesso({
         )}
       </div>
     </ItemVivo>
+  );
+}
+
+const maiuscula = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+
+/**
+ * Dica da coluna Completude: o que falta preencher no cadastro, em lista. Balão
+ * escuro da casa (mesmo visual da dica dos gráficos), por portal para não ser
+ * cortado pela tabela.
+ */
+function DicaCompletude({ faltando, total, children }: { faltando: string[]; total: number; children: ReactNode }) {
+  return (
+    <Tooltip.Provider delayDuration={120} skipDelayDuration={300}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            side="top"
+            align="end"
+            sideOffset={6}
+            collisionPadding={12}
+            className="pop-surge z-[60] max-w-[300px] rounded-xl bg-tinta px-3.5 py-3 text-[12px] leading-snug text-sobre-tinta shadow-card-hover"
+          >
+            {faltando.length === 0 ? (
+              <p className="font-semibold">Cadastro completo</p>
+            ) : (
+              <>
+                <p className="font-semibold">
+                  Falta{faltando.length === 1 ? '' : 'm'} {faltando.length} de {total} campos
+                </p>
+                <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                  {faltando.map(f => (
+                    <li key={f} className="flex items-start gap-1.5 opacity-85">
+                      <span aria-hidden="true" className="mt-[6px] size-1 shrink-0 rounded-pilula bg-current" />
+                      {maiuscula(f)}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <Tooltip.Arrow width={10} height={5} className="fill-tinta" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   );
 }
 

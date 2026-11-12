@@ -682,9 +682,14 @@ textarea.campo {
 
 /* Popover (calendário): nasce do ponto onde foi aberto e some do mesmo jeito. */
 .pop-surge {
-  transform-origin: var(--radix-popover-content-transform-origin, var(--radix-dropdown-menu-content-transform-origin));
+  transform-origin: var(
+    --radix-popover-content-transform-origin,
+    var(--radix-dropdown-menu-content-transform-origin, var(--radix-tooltip-content-transform-origin))
+  );
 }
-.pop-surge[data-state="open"] {
+.pop-surge[data-state="open"],
+.pop-surge[data-state="delayed-open"],
+.pop-surge[data-state="instant-open"] {
   animation: pop-entra 0.2s var(--curva);
 }
 .pop-surge[data-state="closed"] {
