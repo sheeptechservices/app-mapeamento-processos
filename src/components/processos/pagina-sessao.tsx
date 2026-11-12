@@ -20,6 +20,7 @@ import { CabecalhoTabela, LinhaProcesso, type AcoesProcesso } from '@/components
 import { ORIGENS_FILTRO, PainelFiltros } from '@/components/processos/painel-filtros';
 import { useArrastarParaFechar } from '@/components/ui/arrastar-fechar';
 import { Avatar } from '@/components/ui/avatar';
+import { AlvoDica, AreaDica } from '@/components/ui/dica';
 import { estiloBotao } from '@/components/ui/botao';
 import { NumeroAnimado } from '@/components/ui/numero-animado';
 import { Selo } from '@/components/ui/selo';
@@ -54,7 +55,12 @@ function lerAgrupar(): Agrupamento {
 /** Indicador da sessão: rótulo, número que corre e uma linha de apoio. */
 function Kpi({ rotulo, valor, apoio, destaque }: { rotulo: string; valor: ReactNode; apoio?: ReactNode; destaque?: boolean }) {
   return (
-    <div className={cn('rounded-2xl border border-borda p-4 tablet:p-5', destaque ? 'bg-verde-suave/60' : 'bg-superficie')}>
+    <div
+      className={cn(
+        'rounded-2xl border border-borda p-4 transition-[translate,box-shadow,border-color] duration-200 ease-v6 hover:-translate-y-0.5 hover:border-borda-forte hover:shadow-card-hover tablet:p-5',
+        destaque ? 'bg-verde-suave/60' : 'bg-superficie',
+      )}
+    >
       <p className="text-[12px] font-medium text-tinta-2">{rotulo}</p>
       <p className="numeros mt-1.5 text-[22px] leading-none tracking-tight tablet:text-[28px]">{valor}</p>
       {apoio && <p className="mt-2 text-[12px] leading-snug text-tinta-2">{apoio}</p>}
@@ -299,17 +305,36 @@ export function PaginaSessao({
                             <BarraEtapas contagem={etapas} cfg={carteira.config} />
                             {/* Prioridade: contagem direta, sem cor (quatro números leem melhor que um gráfico). */}
                             <h3 className="mt-5 border-t border-borda pt-4 text-[13px] font-semibold">Por prioridade</h3>
-                            <ul className="mt-3 grid grid-cols-4 gap-2">
-                              {PRIORIDADES.map(pr => {
-                                const n = todos.filter(p => p.eisenhower === pr.valor).length;
-                                return (
-                                  <li key={pr.valor} className={cn('rounded-xl bg-sutil/70 px-2 py-2.5 text-center', !n && 'opacity-55')}>
-                                    <span className="numeros block text-[18px] leading-none">{n}</span>
-                                    <span className="mt-1 block truncate text-[12px] text-tinta-2">{pr.rotulo}</span>
-                                  </li>
-                                );
-                              })}
-                            </ul>
+                            <AreaDica className="mt-3">
+                              <ul className="marcas grid grid-cols-4 gap-2">
+                                {PRIORIDADES.map(pr => {
+                                  const daPrioridade = todos.filter(p => p.eisenhower === pr.valor);
+                                  const n = daPrioridade.length;
+                                  const ganho = consolidar(daPrioridade, carteira.ctxDe).ganho_mes;
+                                  return (
+                                    <li key={pr.valor} className={cn(!n && 'opacity-55')}>
+                                      <AlvoDica
+                                        id={String(pr.valor)}
+                                        className="block cursor-default rounded-xl bg-sutil/70 px-2 py-2.5 text-center transition-colors hover:bg-sutil data-[ativa]:bg-sutil"
+                                        conteudo={
+                                          <>
+                                            <strong>{pr.rotulo}</strong>
+                                            {n} {n === 1 ? 'processo' : 'processos'}
+                                            {todos.length > 0 && ` (${percentual(n / todos.length)})`}
+                                            <span className="apoio">
+                                              {ganho > 0 ? `${reais(Math.round(ganho))} por mês` : (pr.dica ?? '')}
+                                            </span>
+                                          </>
+                                        }
+                                      >
+                                        <span className="numeros block text-[18px] leading-none">{n}</span>
+                                        <span className="mt-1 block truncate text-[12px] text-tinta-2">{pr.rotulo}</span>
+                                      </AlvoDica>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </AreaDica>
                           </Quadro>
                           <Quadro titulo="Ganho por setor (mês)">
                             <GanhoPorSetor grupos={setores} />

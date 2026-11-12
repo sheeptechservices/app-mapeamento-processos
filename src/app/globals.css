@@ -276,9 +276,81 @@ body {
 .campo::placeholder {
   color: var(--tinta-3);
 }
+.campo:hover:not(:focus):not(:disabled) {
+  border-color: var(--borda-forte);
+  box-shadow: var(--sombra);
+}
 .campo:focus {
   border-color: var(--tinta-3);
   box-shadow: 0 0 0 3px var(--sutil);
+}
+/* Lupa do campo de busca acorda com o campo (o movimento vem de .mov-lupa). */
+label:hover > .mov-lupa,
+label:focus-within > .mov-lupa {
+  color: var(--tinta-2);
+  transition: color var(--rapido) ease;
+}
+
+/* ─── Dica dos gráficos (ui/dica.tsx) ────────────────────────────────── */
+.dica {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  top: 0;
+  translate: -50% calc(-100% - 10px);
+  pointer-events: none;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--tinta);
+  color: var(--sobre-tinta);
+  font-size: 12px;
+  line-height: 1.4;
+  box-shadow: var(--sombra-hover);
+  opacity: 0;
+  scale: 0.96;
+  transition:
+    opacity var(--rapido) ease,
+    scale var(--rapido) ease,
+    left 0.18s var(--curva),
+    top 0.18s var(--curva);
+}
+.dica.visivel {
+  opacity: 1;
+  scale: 1;
+}
+.dica strong {
+  display: block;
+  font-weight: 600;
+}
+.dica .apoio {
+  display: block;
+  opacity: 0.7;
+}
+/* Marca em foco: as outras do mesmo gráfico esmaecem. */
+.marcas:has([data-ativa]) > :not([data-ativa]) {
+  opacity: 0.45;
+}
+/* A marca em foco pode estar dentro do item (linha da lista): esse item fica aceso. */
+.marcas:has([data-ativa]) > :has([data-ativa]) {
+  opacity: 1;
+}
+.marcas > * {
+  transition: opacity var(--rapido) ease;
+}
+/* Setinha embaixo do balão. */
+.dica::after {
+  content: "";
+  position: absolute;
+  left: calc(50% + var(--seta, 0px));
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  translate: -50% 0;
+  rotate: 45deg;
+  border-radius: 2px;
+  background: inherit;
 }
 textarea.campo {
   resize: none;

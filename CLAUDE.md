@@ -32,6 +32,8 @@ roteiro, validação com o cliente e captura por texto serão reaproveitados nas
   em tela cheia. Abre por push (o voltar do celular fecha o quadro). Com busca ou filtro no mapa, os processos
   achados aparecem sob o cartão e a busca segue para a página da sessão. "Em risco" é filtro.
   Cores das etapas nos gráficos: rampa ordinal `--etapa-1..5` (validada com o validador de paletas).
+  Gráficos têm dica da casa (`ui/dica.tsx`: `AreaDica` + `AlvoDica`, balão escuro, toque mostra/esconde; `.marcas` esmaece
+  as outras marcas). Nada de `title` nativo em gráfico, exceto a barra compacta do cartão (o cartão inteiro é link).
 - **Atualização sem atrapalhar** (`components/aviso-versao.tsx`, `lib/versao.ts`, `/api/versao`): o app compara a
   sua versão (`NEXT_PUBLIC_VERSAO`) com a do ar a cada minuto e ao voltar ao primeiro plano. Versão nova mostra um
   aviso no canto: "Depois" recolhe num botão Atualizar no topo; "Atualizar" pede `Confirmar` (recarregar fecha o que
